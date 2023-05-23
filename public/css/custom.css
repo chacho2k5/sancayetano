@@ -1,0 +1,153 @@
+/* .table-responsive {
+  overflow-x: auto;
+} */
+
+.bgRowPendiente {
+  background-color: #ffe5d0;
+}
+
+.selRowModal {
+  background-color: #ffe5d0;
+  font-weight: bold;
+}
+
+/* Modifica el color el hover en la grilla / Habria que ponerlo en una clase
+table.table>tbody>tr:hover td,
+table.table>tbody>tr:hover th {
+  background-color: #ff4444 !important;
+} */
+
+/* table.table>tbody>tr:hover td,
+table.table>tbody>tr:hover th {
+  background-color: #ff4444 !important;
+} */
+
+ /* -------------------------------------------- */
+    table.mytable {
+        box-sizing: border-box;
+        border-collapse: collapse;
+        font-size: .8rem;
+        width: 100% !important;
+        margin-bottom: 0px !important;
+    }
+
+    table.mytable thead th {
+        padding: 0.2rem;
+    }
+
+    table.mytable tbody td {
+        padding: 0.2rem;
+    }
+    /* -------------------------------------------- */
+
+.thover table>tbody>tr:hover td, table>tbody>tr:hover th {
+  background-color: #ff4444 !important;
+} 
+
+.table-scroll {
+  /* max-height: 330px; */
+  /* max-width: 900px; */
+  overflow: scroll;
+}
+
+.table-sticky thead{
+  position: sticky;
+  top: 0;
+}
+
+.my-body-table-modal {
+  /* text-transform: uppercase; */
+  /* font: .85rem 'MutatorSans', sans-serif;
+  font-weight: lighter; */
+  /* color: #dee2e6; */
+}
+
+/* style="font-size: .9rem; font-family: sans-serif sans-serif, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue'" */
+
+.my-table-modal thead tr th {
+  /* table-layout: fixed;
+  width: 100%; */
+  /* border-bottom: 2px solid #375a7f;
+  background-color: #375a7f; */
+  border-bottom: 2px solid #fd7e14;
+  background-color: #fd7e14;
+  border-bottom: 2px solid #0F5D9D;
+  background-color: #375a7f;
+  
+  text-transform: uppercase;
+  font: .8rem 'MutatorSans', sans-serif;
+  font-weight: bold;
+  color: #dee2e6;
+  color: white;
+
+  box-sizing: border-box;
+  border-collapse: collapse;
+  font-size: .8rem;
+  width: 100% !important;
+  margin-bottom: 0px !important;
+}
+
+.my-body-table {
+  /* text-transform: uppercase; */
+  font: .8rem 'Nunito', sans-serif;
+  font-weight: normal;
+  /* color: #dee2e6; */
+}
+
+.my-table thead tr th {
+  /* table-layout: fixed;
+  width: 100%; */
+  border-bottom: 2px solid #0F5D9D;
+  background-color: #375a7f;
+ 
+  /* font-weight: normal; */
+  text-transform: uppercase;
+  /* font: .9rem 'Nunito', sans-serif; */
+  font: .8rem 'Nunito', sans-serif;
+  font-weight: bold;
+
+  color: #dee2e6;
+
+  box-sizing: border-box;
+  border-collapse: collapse;
+  /* font-size: .8rem; */
+  width: 100% !important;
+  margin-bottom: 0px !important;
+
+    /* Colores
+    blue-200 #9ec5fe
+    blue-300 #6ea8fe
+    blue-400 #3d8bfd
+    blue - #052C65
+    blue-700 #084298
+    blue-800 #052c65
+    blue-900 #031633
+
+    green-300 #75b798
+    green-400 #479f76
+    green-600 #146c43
+    green-700 #0f5132
+    green-800 #0a3622
+
+    teal-700 #13795b
+    teal-900 #06281e
+
+    orange-100 #ffe5d0
+    orange-200 #fecba1
+    orange-300 #feb272
+
+    cyan-800 #055160
+    cyan-900 #032830
+
+    gray-200 #e9ecef
+    gray-300 #dee2e6
+    gray-800 #343a40
+
+    *** Medium Electric Blue  #0F5D9D
+    */
+
+    /* border-bottom: 2px solid var(--bs-gray-300); */
+    /* background-color: var(--bs-warning); */
+}
+
+

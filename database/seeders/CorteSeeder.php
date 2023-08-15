@@ -16,11 +16,12 @@ class CorteSeeder extends Seeder
     public function run()
     {
         $cortes = [
-            ['nombre' => 'Comun'],
-            ['nombre' => 'Riñon'],
-            ['nombre' => 'Camiseta'],
-            ['nombre' => 'Bobina'],
-            ['nombre' => 'Lamina'],
+            ['nombre' => 'Bobina', 'orden' => '1'],
+            ['nombre' => 'Comun', 'orden' => '2'],
+            ['nombre' => 'Riñon', 'orden' => '3'],
+            ['nombre' => 'Camiseta', 'orden' => '4'],
+            ['nombre' => 'Lateral Riñon', 'orden' => '5'],
+            ['nombre' => 'Sin Soldar', 'orden' => '6'],
         ];
 
         foreach ($cortes as $corte) {

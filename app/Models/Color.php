@@ -14,12 +14,15 @@ class Color extends Model
 
     protected $fillable = [
         'nombre',
+        'orden'
     ];
 
     public function scopeNombre($query, $id)
     {
-        $nombre = Color::select('nombre')->find($id);
+        // dd($id); 
 
+        $nombre = Color::select('nombre')->find($id);
         return $nombre->nombre;
+        
     }
 }

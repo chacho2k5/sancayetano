@@ -1,7 +1,7 @@
 <x-app-layout>
-    {{-- <x-slot name="css">
-        <link rel="stylesheet" href="{{ asset('css/datatables.custom.css') }}" class="rel">
-    </x-slot> --}}
+    {{-- <x-slot name="css"> --}}
+        {{-- <link rel="stylesheet" href="{{ asset('css/datatables.custom.css') }}" class="rel"> --}}
+    {{-- </x-slot> --}}
 
     {{-- <x-slot name="header">
         <div class="row justify-content-center">
@@ -14,7 +14,6 @@
     {{-- <x-slot name="header">
         ORDEN DE TRABAJO
     </x-slot> --}}
-
 
     {{-- <div class="container">
         <div class="row justify-content-center">

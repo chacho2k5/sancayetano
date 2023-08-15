@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Articulo;
+use App\Models\Densidad;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,15 +23,16 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call([
-            ArticuloSeeder::class,
+            // ArticuloSeeder::class,
             BarrioSeeder::class,
             BolsaSeeder::class,
             CalleSeeder::class,
-            ClienteSeeder::class,
+            // ClienteSeeder::class,
             ColorSeeder::class,
             CortadoraSeeder::class,
             CorteSeeder::class,
-            EmpleadoSeeder::class,
+            DensidadSeeder::class,
+            // EmpleadoSeeder::class,
             EstadoSeeder::class,
             ExtrusoraSeeder::class,
             ImpresoraSeeder::class,
@@ -39,7 +41,7 @@ class DatabaseSeeder extends Seeder
             MaterialSeeder::class,
             MesSeeder::class,
             // OrdenTrabajoSeeder::class,
-            PedidoSeeder::class,
+            // PedidoSeeder::class,
             ProvinciaSeeder::class,
             SetupSeeder::class,
             TratadoSeeder::class,

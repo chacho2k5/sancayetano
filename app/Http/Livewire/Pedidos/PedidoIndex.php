@@ -1,25 +1,28 @@
-<?php 
+<?php
 
 namespace App\Http\Livewire\Pedidos;
 
-use App\Models\Bolsa;
-use App\Models\Color;
-use App\Models\Corte;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Mes;
+use App\Models\Bolsa;
+use App\Models\Color;
+use App\Models\Corte;
 use App\Models\Estado;
-use Livewire\Component;
-use Illuminate\View\View;
-use App\Models\EstadoPedido;
-use App\Models\Material;
 use App\Models\Pedido;
+use App\Models\Reclamo;
 use App\Models\Trabajo;
 use App\Models\Tratado;
+use Livewire\Component;
+use App\Models\Material;
+use Illuminate\View\View;
+use App\Models\EstadoPedido;
 use Livewire\WithPagination;
 use Ramsey\Uuid\Type\Integer;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\Cast\Int_;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 use PhpOffice\PhpSpreadsheet\Calculation\TextData\Search;
 
@@ -35,8 +38,9 @@ class PedidoIndex extends Component
 
     // Busqueda y orden y paginacion tabla
     public $search = '';
-    public $perPage = '20';
-    public $sortField = 'fecha_pedido';
+    public $perPage = '13';
+    public $selectedPerPage = '13';
+    public $sortField = 'numero_ot';
     public $sortOrden = 'desc';
 
     // Modales
@@ -51,9 +55,21 @@ class PedidoIndex extends Component
     public $estado_en_proceso = 3;
     public $estado_terminada = 4;
     public $estado_facturado = 5;
-    public $estado_despachada = 6;
-    public $estado_entregada = 7;
-    public $estado_anulada = 8;
+    public $estado_entregada = 6;
+    public $estado_anulada = 7;
+
+    // RECLAMOS
+    // public $reclamos;
+    // public $reclamoFechaInicio, $reclamoFechaFin;
+    // public $reclamoClienteId;       // ID del cliente para el reclamo seleccionado
+    // public $reclamoPedidoId;       // ID del Pedidocliente para el reclamo seleccionado
+    // public $reclamoObservaciones;
+    // public $reclamoEstado;  // true->cerrado - false->abierto
+    // public $reclamosClienteId;
+    // public $reclamosCliente;
+
+    // public $pedidoReclamo;          // Si el pedido tiene o tuvo un reclamo
+    // public $pedidoReclamoCerrado;   // Si el pedido esta abierto o cerrado
 
     // Variables SELECTs
     public $meses;
@@ -65,40 +81,42 @@ class PedidoIndex extends Component
     public $selectedRow = null;        // Indica si esta seleccionada una columna
     // public $indexRow;
 
+    // public $reclamo_cerrado;
+    // RECLAMOS
     public $reclamo;
+    public $reclamo_inicio, $reclamo_final;
     public $reclamo_detalle;
-    public $reclamo_cerrado;
 
     // Tabla ESTADOS
     public $estados;        // Comobo estados p/filtro
     public $estado_id;      // ID del estado actual
-    public $estado_orden, $estado_nombre, $estado_nuevo_nombre;
+    public $estado_orden, $estado_nombre, $newEstadoNombre;
     public $selectedEstado, $selectedNewEstado;
-    public $estado_observaciones;       // Observaciones al cambio de estado (tabla: estado_ots)
+    public $newEstadoObservaciones;       // Observaciones al cambio de estado (tabla: estado_ots)
 
     protected $listeners = ['borrarReclamo'];
 
-    protected function rules() {
-        return [
-            'reclamo_detalle' => 'string|max:3000',
-        ];
-    }
+    // public function updated($propertyName)
+    // {
+    //     $this->validateOnly($propertyName);
+    // }
 
-    public function updated($propertyName)
-    {
-        $this->validateOnly($propertyName);
-    }
+    // protected function rules() {
+    //     return [
+    //         'reclamo_detalle' => 'string|max:2000',
+    //     ];
+    // }
 
-    protected $validationAttributes = [
-        'reclamo_detalle' => 'Detalle Reclamo',
-    ];
+    // protected $validationAttributes = [
+    //     'reclamo_detalle' => 'Detalle Reclamo',
+    // ];
 
-    protected $messages = [
-        'reclamo_detalle' => [
-            'required' => 'El Reclamo no puede quedar vacio.',
-            'max' => 'Puede ingresar hasta 3000 caracteres.',
-        ],
-    ];
+    // protected $messages = [
+    //     'reclamo_detalle' => [
+    //         'required' => 'El Reclamo no puede quedar vacio.',
+    //         'max' => 'Puede ingresar hasta 2000 caracteres.',
+    //     ],
+    // ];
     
     public function mount($id = 0) 
     {
@@ -149,12 +167,13 @@ class PedidoIndex extends Component
                     $query->where('estado_id', $this->selectedEstado);
                 })
                 ->when($this->search, function($query) {
-                    $query->where('razonsocial', 'like', '%' . $this->search . '%');
+                    $query->where('razonsocial', 'like', '%' . $this->search . '%')
+                          ->orWhere('trabajo_nombre', 'like', '%' . $this->search . '%');;
                 })
                 ->with('color:id,nombre', 'corte:id,nombre', 'tratado:id,nombre')
                 ->select('*')
                 ->orderBy($this->sortField, $this->sortOrden)
-                ->paginate($this->perPage);
+                ->paginate($this->selectedPerPage);
                 // ->simplePaginate($this->perPage);
                 // ->cursorPaginate($this->perPage);
 
@@ -164,11 +183,9 @@ class PedidoIndex extends Component
 
     public function updatingSearch()
     {
-
         // Se ejectua para "limpiar el filtro" antes de cambiar la condicion del mismo, en este caso la var. selectedMes
         $this->resetPage();
         // $this->indexRow = 0;
-
     }
 
     public function updatingSelectedMes()
@@ -211,8 +228,23 @@ class PedidoIndex extends Component
         // }
     }
 
-    public function validarEdicion($value) {
+    public function updatedselectedNewEstado($value) {
+        // $db = $this->estados->find($value);
+        $this->newEstadoNombre = Estado::getNombreEstado($value);
+        // dd($db->nombre);
+        // $this->resetPage();
+        // $this->selectedMes;
+        // if($value ==! null) {
+        // } else {
 
+        // }
+    }
+
+    //
+    // Al presionar un boton 1ero se valida si se puede ejecutar la accion, si hay una fila seleccionada, etc.
+    //
+    public function validarEdicion($value) 
+    {
         $msg = null;
         $result = true;
 
@@ -220,7 +252,8 @@ class PedidoIndex extends Component
             $msg = 'Debe seleccionar un Pedido.';
         }
 
-        if(($value=='edit' || $value=='delete' || $value=='reclamo' || $value=='estado' || $value=='imprimir-ot') && $this->selectedRow && $this->estado_id == $this->estado_terminada) {
+        // if(($value=='edit' || $value=='delete' || $value=='reclamo' || $value=='estado' || $value=='imprimir-ot') && $this->selectedRow && $this->estado_id == $this->estado_terminada) {
+        if(($value=='edit' || $value=='delete' || $value=='reclamo' || $value=='estado') && $this->selectedRow && $this->estado_id == $this->estado_terminada) {
             $msg = 'El Pedido esta Terminado. No se puede editar y/o borrar.';
         }
 
@@ -235,9 +268,12 @@ class PedidoIndex extends Component
         return $result;
     }
 
+
     public function editarOt($action) 
     {
         $this->modal_action = $action;
+
+        // return to_route('ots.report',[$this->pedido_id]);
 
         if($action == 'create') {
             $id = 0;
@@ -266,13 +302,17 @@ class PedidoIndex extends Component
             if($action == 'imprimir-ot' || $action == 'imprimir-ot-row') {
                 $this->modal_title = "Imprimir Orden de Trabajo";
 
-                if($this->estado_id > $this->estado_cargada) {
-                    $this->modal_content = 'No se puede volver a generar la OT seleccionada.';
-                    $this->dispatchBrowserEvent('show-alert-modal');
-                } else {
-                    $this->modal_content = 'Desea imprimir la OT seleccionada ?';
-                    $this->dispatchBrowserEvent('show-imprimir-modal');
-                }
+                // if($this->estado_id > $this->estado_cargada) {
+                //     $this->modal_content = 'No se puede volver a generar la OT seleccionada.';
+                //     $this->dispatchBrowserEvent('show-alert-modal');
+                // } else {
+                //     $this->modal_content = 'Desea imprimir la OT seleccionada ?';
+                //     $this->dispatchBrowserEvent('show-imprimir-modal');
+                // }
+
+                $this->modal_content = 'Desea imprimir la OT seleccionada ?';
+                $this->dispatchBrowserEvent('show-imprimir-modal');
+
                 return;
             }
 
@@ -282,11 +322,9 @@ class PedidoIndex extends Component
 
     }
 
-    public function generarOt($id) {
-        dd($id);
-    }
-
     public function imprimirOt() {
+
+        // GRABO LOS NUEVOS ESTADOS
 
         // Esto graba en un campo DateTime
         $fecha = now()->format('Y-m-d H:i:s');
@@ -314,15 +352,33 @@ class PedidoIndex extends Component
                         'estado_nombre' => $this->estado_nombre,
                         'estado_fecha' => $fecha,
                     ]);
-
+ 
 
             DB::commit();
 
             $this->estado_id = $this->estado_generada;
-            $this->estado_nombre = $this->estado_nuevo_nombre;
+            $this->estado_nombre = $this->newEstadoNombre;
 
             $this->color_status = "success";
             $msg = "La OT se ha generado correctamente";
+
+            return to_route('ots.report',[$this->pedido_id]);
+
+            // $ot = Pedido::find($this->pedido_id);
+            // $reporte = 'OT_' . $ot->numero_ot . '.pdf';
+            // $logo = "img/logo_ot_3.png";
+            // $pdf = Pdf::loadView('reportes.ot-report', compact('ot'));
+            // return $pdf->stream('reporte.pdf');
+
+            // $pdf = Pdf::loadView('reportes.ot-report',['ot' => $ot]);
+            // return $pdf->stream($reporte);
+            // return $pdf->download($reporte);
+
+            // $pdf->loadHTML('<h1>PROBANDO PDF</h1>');
+
+            // $pdf = Pdf::loadView('reportes.ot-report',['ot' => $ot, 'logo' => $logo]);
+
+            
 
         } catch (Throwable $e) {
 
@@ -333,9 +389,6 @@ class PedidoIndex extends Component
             $msg = "Se ha producido un error. No se pudo generar la OT. Revise los datos y vuelvalo a intentar.";
         }
 
-        // $this->estado_id = $this->selectedNewEstado;
-        // $this->estado_nombre = $this->estado_nuevo_nombre;
-
         $this->dispatchBrowserEvent('close-modal');
 
         return back()->with('status', $msg);
@@ -343,7 +396,7 @@ class PedidoIndex extends Component
 
     public function cambiarEstadoModal() {
         
-        $this->reset('estado_observaciones','selectedNewEstado', 'estado_nuevo_nombre');
+        $this->reset('newEstadoObservaciones','selectedNewEstado', 'newEstadoNombre');
 
         $this->modal_title = "CAMBIAR ESTADO";
         $this->modal_width = 'md';
@@ -357,7 +410,7 @@ class PedidoIndex extends Component
         $estado = $this->estados->firstWhere('orden', $orden);
 
         $this->selectedNewEstado = $estado->id;
-        $this->estado_nuevo_nombre = $estado->nombre;
+        $this->newEstadoNombre = $estado->nombre;
 
         $this->dispatchBrowserEvent('show-estado-modal');
     }
@@ -375,13 +428,13 @@ class PedidoIndex extends Component
                 'estado_id' => $this->selectedNewEstado,
                 'fecha_inicio' => $fecha,
                 'fecha_final' => $fecha,
-                'observaciones' => substr($this->estado_observaciones,0,1000)
+                'observaciones' => substr($this->newEstadoObservaciones,0,1000)
             ]);
 
             Pedido::where('id', $this->pedido_id)
                     ->update([
                         'estado_id' => $this->selectedNewEstado,
-                        'estado_nombre' => $this->estado_nuevo_nombre,
+                        'estado_nombre' => $this->newEstadoNombre,
                         'estado_fecha' => $fecha,
                     ]);
 
@@ -396,9 +449,11 @@ class PedidoIndex extends Component
             DB::commit();
 
             $this->estado_id = $this->selectedNewEstado;
-            $this->estado_nombre = $this->estado_nuevo_nombre;
+            $this->estado_nombre = $this->newEstadoNombre;
 
         } catch (Throwable $e) {
+            
+            // dd($e);
 
             DB::rollBack();
             $this->color_status = "danger";
@@ -413,87 +468,240 @@ class PedidoIndex extends Component
     }
 
     public function createTrabajo() {
-            // Me posiciono sobre el Pedido seleccionado
-            $pedido = Pedido::find($this->pedido_id);
+        //
+        // Se crea un registro en la tabla TRABAJOS cuando el PEDIDO se pasa al estado TERMINADO
+        //
+        // Me posiciono sobre el Pedido seleccionado
+        $pedido = Pedido::find($this->pedido_id);
 
-            // Creo el nuevo trabajo (obvio esto se deberia poder hacer mas facil)
-            Trabajo::Create([
-                'pedido_id' => $this->pedido_id,
-                'numero_ot' => $pedido->numero_ot,
-                'fecha_pedido' => date('Y/m/d H:i:s', strtotime($pedido->fecha_pedido)),
-                'fecha_entrega' => date('Y/m/d H:i:s', strtotime($pedido->fecha_entrega)),
-                // 'fecha_pedido' => $pedido->fecha_pedido,
-                // 'fecha_entrega' => $pedido->fecha_entrega,
-                'cliente_id' => $pedido->cliente_id,
-                'razonsocial' => $pedido->razonsocial,
-                'estado_id' => $pedido->estado_id,
-                'estado_nombre' => $pedido->estado_nombre,
-                'estado_fecha' => $pedido->estado_fecha,
-                'trabajo_nombre' => $pedido->trabajo_nombre,
-                'ancho' => $pedido->ancho,
-                'largo' => $pedido->largo,
-                'espesor' => $pedido->espesor,
-                'material_id' => $pedido->material_id,
-                'material_nombre' => Material::nombre($pedido->material_id),
-                'material_pesoespecifico' => $pedido->material_pesoespecifico,
-                'color_id' => $pedido->color_id,
-                'color_nombre' => Color::nombre($pedido->material_id),
-                'bolsa_id' => $pedido->bolsa_id,
-                'bolsa_nombre' => Bolsa::nombre($pedido->material_id),
-                'bolsa_fuelle' => $pedido->bolsa_fuelle,
-                'bolsa_largo_fuelle' => $pedido->bolsa_largo_fuelle,
-                'tratado_id' => $pedido->tratado_id,
-                'tratado_nombre' => Tratado::nombre($pedido->material_id),
-                'cantidad_bolsas' => $pedido->cantidad_bolsas,
-                'corte_id' => $pedido->corte_id,
-                'corte_nombre' => Corte::nombre($pedido->material_id),
-                'metros' => $pedido->metros,
-                'peso' => $pedido->peso,
-                'precio_unitario' => $pedido->precio_unitario,
-                'precio_total' => $pedido->precio_total,
-                'observaciones' => $pedido->observaciones,
-                'trabajo_activo' => $pedido->trabajo_activo,
-            ]);
-    }
-    
-    public function reclamoModal() {
-        
-        $this->modal_title = "NUEVO RECLAMO";
-        $this->modal_width = 'md';
+        $color_id_1 = null;
+        $color_id_2 = null;
+        $color_id_3 = null;
+        $color_id_4 = null;
+        $color_nombre_1 = null;
+        $color_nombre_2 = null;
+        $color_nombre_3 = null;
+        $color_nombre_4 = null;
 
-        $reg = Pedido::select('reclamo','reclamo_detalle')
-            ->where('id', $this->pedido_id)
-            ->first();
-
-        if($reg) {
-            $this->reclamo = $reg->reclamo;
-            $this->reclamo_detalle = $reg->reclamo_detalle;
+        if ($pedido->color_id_1) {
+            $color_id_1 = $pedido->color_id_1;
+            $color_nombre_1 = Color::nombre($pedido->color_id_1);
+        }
+        if ($pedido->color_id_2) {
+            $color_id_2 = $pedido->color_id_2;
+            $color_nombre_2 = Color::nombre($pedido->color_id_2);
+        }
+        if ($pedido->color_id_3) {
+            $color_id_3 = $pedido->color_id_3;
+            $color_nombre_3 = Color::nombre($pedido->color_id_3);
+        }
+        if ($pedido->color_id_4) {
+            $color_id_4 = $pedido->color_id_4;
+            $color_nombre_4 = Color::nombre($pedido->color_id_4);
         }
 
-        $this->dispatchBrowserEvent('show-reclamo-modal');
+        // 'color_id_2' => $pedido->color_id_2,
+        //     'color_nombre_2' => Color::nombre($pedido->color_id_2),
+        //     'color_id_3' => $pedido->color_id_3,
+        //     'color_nombre_3' => Color::nombre($pedido->color_id_3),
+        //     'color_id_4' => $pedido->color_id_4,
+        //     'color_nombre_4' => Color::nombre($pedido->color_id_4),
 
-        // dd($this->pedido_id);
+        // Creo el nuevo trabajo (obvio esto se deberia poder hacer mas facil)
+        Trabajo::Create([
+            'pedido_id' => $this->pedido_id,
+            'numero_ot' => $pedido->numero_ot,
+            'fecha_pedido' => date('Y/m/d H:i:s', strtotime($pedido->fecha_pedido)),
+            'fecha_entrega' => date('Y/m/d H:i:s', strtotime($pedido->fecha_entrega)),
+            'cliente_id' => $pedido->cliente_id,
+            'razonsocial' => $pedido->razonsocial,
+            'estado_id' => $pedido->estado_id,
+            'estado_nombre' => $pedido->estado_nombre,
+            'estado_fecha' => $pedido->estado_fecha,
+            'trabajo_nombre' => $pedido->trabajo_nombre,
+            'ancho' => $pedido->ancho,
+            'largo' => $pedido->largo,
+            'espesor' => $pedido->espesor,
+
+
+            'densidad_id' => $pedido->densidad_id,
+            'densidad_nombre' => $pedido->densidad_nombre,
+            'densidad_pesoespecifico' => $pedido->densidad_pesoespecifico,
+
+
+            'material_id' => $pedido->material_id,
+            'material_nombre' => Material::nombre($pedido->material_id),
+            // 'material_pesoespecifico' => $pedido->material_pesoespecifico,
+            'color_id' => $pedido->color_id,
+            'color_nombre' => Color::nombre($pedido->color_id),
+
+
+            'color_id_1' => $color_id_1,
+            'color_nombre_1' => $color_nombre_1,
+            'color_id_2' => $color_id_2,
+            'color_nombre_2' => $color_nombre_2,
+            'color_id_3' => $color_id_3,
+            'color_nombre_3' => $color_nombre_3,
+            'color_id_4' => $color_id_4,
+            'color_nombre_4' => $color_nombre_4,
+
+
+            'bolsa_id' => $pedido->bolsa_id,
+            'bolsa_nombre' => Bolsa::nombre($pedido->bolsa_id),
+            'bolsa_fuelle' => $pedido->bolsa_fuelle,
+            'bolsa_largo_fuelle' => $pedido->bolsa_largo_fuelle,
+            'tratado_id' => $pedido->tratado_id,
+            'tratado_nombre' => Tratado::nombre($pedido->tratado_id),
+            'cantidad_bolsas' => $pedido->cantidad_bolsas,
+            'corte_id' => $pedido->corte_id,
+            'corte_nombre' => Corte::nombre($pedido->corte_id),
+            'metros' => $pedido->metros,
+            'peso' => $pedido->peso,
+            'precio_unitario' => $pedido->precio_unitario,
+            'precio_total' => $pedido->precio_total,
+            'observaciones' => $pedido->observaciones,
+
+            'observaciones_extrusion' => $pedido->observaciones_extrusion,
+            'observaciones_impresion' => $pedido->observaciones_impresion,
+            'observaciones_corte' => $pedido->observaciones_corte,
+
+            'trabajo_activo' => $pedido->trabajo_activo,
+        ]);
+    }
+    
+    public function reclamoModal() 
+    {
+        $db = Pedido::select('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle')
+            ->firstWhere('id', $this->pedido_id);
+
+        if($db) {
+            $this->reclamo = $db->reclamo;
+            $this->reclamo_inicio = $db->reclamo_inicio;
+            $this->reclamo_final = $db->reclamo_final;
+            $this->reclamo_detalle = $db->reclamo_detalle;
+            $this->modal_title = "RECLAMO";
+        } else {
+            $this->modal_title = "NUEVO RECLAMO";
+        }
+
+        $this->modal_width = 'lg';
+
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+        $this->dispatchBrowserEvent('show-reclamo-modal');
     }
 
-    public function editarReclamo($action) {
+    public function grabarReclamo() 
+    {
+        $this->validate(
+            [
+                'reclamo_detalle' => 'required|string|max:2000',
+            ],
+            [
+                'reclamo_detalle' => [
+                    'required' => 'El Reclamo no puede quedar vacio.',
+                    'max' => 'Puede ingresar hasta 2 caracteres.',
+                ],
+            ],
+            [
+                'reclamo_detalle' => 'Detalle del reclamo',
+            ]
+        );
+
+        $this->reclamo = true;
+
+        Pedido::where('id', $this->pedido_id)
+            ->update([
+                'reclamo' => true,
+                'reclamo_inicio' => now()->format('Y-m-d H:i:s'),
+                'reclamo_detalle' => trim($this->reclamo_detalle),
+            ]);
+
+        $this->reset('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle');
+        $this->dispatchBrowserEvent('close-modal');
+    }
+
+    public function finalizarReclamo() 
+    {
+        $this->validate(
+            [
+                'reclamo_detalle' => 'required|string|max:2000',
+            ],
+            [
+                'reclamo_detalle' => [
+                    'required' => 'El Reclamo no puede quedar vacio.',
+                    'max' => 'Puede ingresar hasta 2 caracteres.',
+                ],
+            ],
+            [
+                'reclamo_detalle' => 'Detalle del reclamo',
+            ]
+        );
+
+        $this->reclamo = true;
+
+        // dd($this->reclamo_detalle . '\n' . 'FINALIZADO');
+
+        Pedido::where('id', $this->pedido_id)
+            ->update([
+                'reclamo' => true,
+                'reclamo_final' => now()->format('Y-m-d H:i:s'),
+                'reclamo_detalle' => trim($this->reclamo_detalle) . PHP_EOL . 'RECLAMO FINALIZADO.',
+            ]);
+
+        $this->reset('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle');
+        $this->dispatchBrowserEvent('close-modal');
+    }
+
+    public function cancelModalReclamo() 
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+        $this->reset('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle');
+        $this->dispatchBrowserEvent('close-modal');
+    }
+
+    public function editarReclamoxxx($action) {
         if($this->pedido_id !== null)      // Es un ALTA
         {
-            if ($action == 'borrar') {
-                $this->dispatchBrowserEvent('borrar-reclamo', [
-                    'msg' => '¿Desea borrar el reclamo?'
+            if ($action == 'cerrar') {
+                $this->dispatchBrowserEvent('cerrar-reclamo', [
+                    'msg' => '¿Desea cerrar el reclamo?'
                 ]);
             } else {
-                $this->validate();
+                $this->validate(
+                    [
+                        'reclamo_detalle' => 'string|max:2000',
+                    ],
+                    [
+                        'reclamo_detalle' => [
+                            'required' => 'El Reclamo no puede quedar vacio.',
+                            'max' => 'Puede ingresar hasta 2 caracteres.',
+                        ],
+                    ],
+                    [
+                        'reclamo_detalle' => 'Detalle del reclamo',
+                    ]
+                );
 
                 $this->reclamo = true;
+                Pedido::where('id', $this->pedido_id)
+                ->update([
+                    'reclamo' => true,
+                    'reclamo_inicio' => now()->format('Y-m-d H:i:s'),
+                    'reclamo_detalle' => trim($this->reclamo_detalle),
+                    ]);
 
-                $this->updateReclamo();
+                $this->reset('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle');
+                $this->dispatchBrowserEvent('close-modal');
             }
 
         }
     }
 
-    public function borrarReclamo() {
+    public function cerrarReclamo() {
         $this->reclamo = false;
         $this->reclamo_detalle = '';
 
@@ -502,17 +710,18 @@ class PedidoIndex extends Component
 
     public function updateReclamo() {
         Pedido::where('id', $this->pedido_id)
-                ->update(
-                    ['reclamo' => $this->reclamo,
+                ->update([
+                    'reclamo' => true,
+                    'reclamo_inicio' => now()->format('Y-m-d H:i:s'),
                     'reclamo_detalle' => trim($this->reclamo_detalle),
             ]);
 
-        $this->reset('reclamo','reclamo_detalle');
+        $this->reset('reclamo','reclamo_inicio', 'reclamo_final', 'reclamo_detalle');
         $this->dispatchBrowserEvent('close-modal');
     }
 
-    public function delete() {
-
+    public function delete() 
+    {
         Pedido::where('id', $this->pedido_id)
                 ->update(['anulada' => true]);
 
@@ -520,9 +729,11 @@ class PedidoIndex extends Component
         // // session()->flash('message', 'Registro borrado exitosamente '.$this->pedido_id);
         $this->reset('pedido_id', 'selectedRow', 'estado_id');
     }
-
     
-    public function cancelModal() {
+    public function cancelModal() 
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
 
         $this->dispatchBrowserEvent('close-modal');
         // $this->reset('reclamo','reclamo_detalle');
@@ -550,4 +761,9 @@ class PedidoIndex extends Component
             $this->sortOrden = 'asc';
         }
     }
+
+    // public function paginationView()
+    // {
+    //     return 'custom-pagination';
+    // }
 }

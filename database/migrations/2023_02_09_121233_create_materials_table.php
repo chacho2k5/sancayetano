@@ -16,11 +16,7 @@ return new class extends Migration
         Schema::create('materiales', function (Blueprint $table) {
             $table->id();
             $table->string('nombre',20)->unique();
-            $table->string('detalle',80)->nullable();
-            $table->double('pesoespecifico');
-            $table->double('min')->nullable()->default(0);      // Indicaria el espesor min para determinar si es de AD o BD?
-            $table->double('max')->nullable()->default(0);
-            $table->string('material')->virtualAs('concat(nombre, \' - \', detalle)');
+            $table->smallInteger('orden')->nullable()->default('1');       // Orden para mostrar los datos
             // $table->timestamps();
         });
     }

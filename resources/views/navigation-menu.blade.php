@@ -1,9 +1,13 @@
 <nav class="bg-white navbar navbar-expand-md navbar-light border-bottom sticky-top">
+    <!-- Logo -->
+    <a class="navbar-brand ms-2" href="/dashboard">
+        <x-application-mark width="36" />
+    </a>
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand me-4" href="/dashboard">
+        {{-- <a class="navbar-brand me-4" href="/dashboard">
             <x-application-mark width="36" />
-        </a>
+        </a> --}}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -44,7 +48,7 @@
                             Clientes
                         </x-dropdown-link>
 
-                        <x-dropdown-link href="{{ route('clientes.index') }}">
+                        {{-- <x-dropdown-link href="{{ route('clientes.index') }}">
                             Empleados
                         </x-dropdown-link>
 
@@ -60,7 +64,7 @@
                         </x-dropdown-link>
                         <x-dropdown-link href="{{ route('dashboard') }}">
                             Materiales
-                        </x-dropdown-link>
+                        </x-dropdown-link> --}}
 
                     </x-slot>
                 </x-dropdown>

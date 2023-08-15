@@ -20,17 +20,25 @@ class Pedido extends Model
         'estado_id',
         'estado_nombre',
         'estado_fecha',
-        // 'mes_id',
-        // 'mes',
         'trabajo_nombre',
         'ancho',
         'largo',
         'espesor',
+        'densidad_id',
+        'densidad_nombre',
+        'densidad_pesoespecifico',
         'material_id',
         'material_nombre',
-        'material_pesoespecifico',
         'color_id',
         'color_nombre',
+        'color_id_1',
+        'color_nombre_1',
+        'color_id_2',
+        'color_nombre_2',
+        'color_id_3',
+        'color_nombre_3',
+        'color_id_4',
+        'color_nombre_4',
         'bolsa_id',
         'bolsa_nombre',
         'bolsa_fuelle',
@@ -45,9 +53,14 @@ class Pedido extends Model
         'precio_unitario',
         'precio_total',
         'observaciones',
+        'observaciones_extrusion',
+        'observaciones_impresion',
+        'observaciones_corte',
         'trabajo_activo',
         'reclamo',
-        'reclamo_detalle'
+        'reclamo_detalle',
+        'reclamo_inicio',
+        'reclamo_final',
     ];
 
     // protected $appends = ['mi_estado', 'mi_asterisco'];
@@ -76,6 +89,52 @@ class Pedido extends Model
     //     );
     // }
 
+    public function scopeGetReclamosCliente($query, $cliente)
+    {
+        $db = Pedido::query()
+            ->where('cliente_id', $cliente)
+            ->where('reclamo', true)
+            ->count();
+
+        return $db;
+    }
+
+    public function scopeShowReclamosCliente($query, $cliente)
+    {
+        $db = Pedido::query()
+            ->select('id','numero_ot','reclamo_inicio', 'reclamo_final', 'reclamo_detalle')
+            ->where('cliente_id', $cliente)
+            ->where('reclamo', true)
+            ->get();
+
+        return $db;
+    }
+
+    public function scopeGetReclamoDetalle($query, $value)
+    {
+        // Devuelve el detalle del reclamo
+        
+        $db = Pedido::find($value);
+
+        return $db->reclamo_detalle;
+    }
+
+    public function scopeGetReclamo($query, $value)
+    {
+        // Devuelve true/false si el pedido tiene o no un reclamo
+        
+        $db = Pedido::find($value);
+
+        return $db->reclamo;
+    }
+
+    public function scopeGetClienteId($query, $value)
+    {
+        $db = Pedido::find($value);
+
+        return $db->cliente_id;
+    }
+
     public function scopeUltimaOt($query, $mes)
     {
         $aux = Pedido::whereMonth('fecha_pedido',$mes)->count();
@@ -85,6 +144,16 @@ class Pedido extends Model
             return $query->whereMonth('fecha_pedido',$mes)
                             ->max('numero_ot_mensual');
         }
+    }
+
+    public function scopeCantidadActivos($query, $cliente, $estado)
+    {
+        $db = Pedido::query()
+            ->where('cliente_id', $cliente)
+            ->where('trabajo_activo', $estado)
+            ->count();
+
+        return $db;
     }
 
     public function cliente() {

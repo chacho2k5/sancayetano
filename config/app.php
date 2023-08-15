@@ -41,7 +41,8 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    // 'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -83,7 +84,12 @@ return [
     |
     */
 
-    'locale' => 'es',
+    // 'locale' => 'es',
+    // 'locale' => 'es_ES.UTF-8',
+    // 'locale' => 'es_RA.UTF-8',
+    // 'locale' => 'es_ES.UTF-8',
+    // 'locale' => 'es_ES.UTF-8',
+
 
     /*
     |--------------------------------------------------------------------------

@@ -16,4 +16,11 @@ class Estado extends Model
             'orden',
             'nombre',
         ];
+
+        public function scopeGetNombreEstado($query, $id)
+        {
+            $db = Estado::select('nombre')->find($id);
+
+            return $db->nombre;
+        }
 }

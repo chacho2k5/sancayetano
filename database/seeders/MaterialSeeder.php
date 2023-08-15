@@ -16,10 +16,10 @@ class MaterialSeeder extends Seeder
     public function run()
     {
         $materiales = [
-            // ['nombre' => 'AD', 'detalle' => 'Alta Densidad', 'pesoespecifico' => '1.92', 'min' => '', 'max' => ''],
-            // ['nombre' => 'BD', 'detalle' => 'Baja Densidad', 'pesoespecifico' => '1.84', 'min' => '', 'max' => ''],
-            ['nombre' => 'AD', 'detalle' => 'Alta Densidad', 'pesoespecifico' => '1.92'],
-            ['nombre' => 'BD', 'detalle' => 'Baja Densidad', 'pesoespecifico' => '1.84'],
+            ['nombre' => 'FABRICA', 'orden' => '1'],
+            ['nombre' => 'LAVADO', 'orden' => '2'],
+            ['nombre' => 'MEZCLA C/LINEAL', 'orden' => '3'],
+            ['nombre' => 'VIRGEN', 'orden' => '4'],
         ];
 
         foreach ($materiales as $material) {

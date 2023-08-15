@@ -15,9 +15,10 @@ return new class extends Migration
     {
         Schema::create('tratados', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre',20)->nullable();
-            $table->string('detalle',40)->nullable();
+            $table->string('nombre',50)->nullable();
+            $table->string('detalle',80)->nullable();
             $table->unsignedInteger('formula')->nullable();
+            $table->smallInteger('orden')->nullable()->default('1');       // Orden para mostrar los datos
             // $table->timestamps();
         });
     }

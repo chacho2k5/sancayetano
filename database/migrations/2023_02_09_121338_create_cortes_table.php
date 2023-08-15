@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('cortes', function (Blueprint $table) {
             $table->id();
             $table->string('nombre',80)->unique();
+            $table->smallInteger('orden')->nullable()->default('1');       // Orden para mostrar los datos
             // $table->timestamps();
         });
     }

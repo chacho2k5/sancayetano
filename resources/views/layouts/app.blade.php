@@ -14,14 +14,25 @@
         <!-- Styles -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
+        <style>
+            .header {
+                position: sticky;
+                top:0;
+                font-style: italic
+            }
+             body {
+                 height: 800px;
+             }
+        </style>
+
         <!-- Font Awesome Icons (chacho - Ver si esto no deberia ir en la carpeta VENDOR) -->
         <link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.min.css') }}">
         <!-- Theme style -->
         <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 
-        {{-- @isset($css)
+        @isset($css)
             {{ $css }}
-        @endisset --}}
+        @endisset
         <style> 
             .my-table-responsive {
               overflow-x: scroll;

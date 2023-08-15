@@ -14,10 +14,7 @@ class Material extends Model
 
     protected $fillable = [
         'nombre',
-        'detalle',
-        'pesoespecifico',
-        'min',
-        'max',
+        'orden',
     ];
 
     public function scopeNombre($query, $id)

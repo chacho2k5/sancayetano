@@ -16,8 +16,11 @@ class BolsaSeeder extends Seeder
     public function run()
     {
         $bolsas = [
-            ['nombre' => 'Tubo', 'fuelle' => false],
-            ['nombre' => 'Fuelle', 'fuelle' => true],
+            ['nombre' => 'Tubo', 'fuelle' => false, 'orden' => '1'],
+            ['nombre' => 'Tubo abierto 1 lado', 'fuelle' => false, 'orden' => '2'],
+            ['nombre' => 'Fuelle', 'fuelle' => true, 'orden' => '3'],
+            ['nombre' => 'Fuelle abierto 1 lado', 'fuelle' => true, 'orden' => '4'],
+            ['nombre' => 'Lamina', 'fuelle' => false, 'orden' => '5'],
         ];
 
         foreach ($bolsas as $bolsa) {

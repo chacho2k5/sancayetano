@@ -1,6 +1,6 @@
 <div> 
     <div x-data="{indexRow: @entangle('indexRow'), selected: null, selectedRow: @entangle('selectedRow'), pedidoId: @entangle('pedido_id'), estadoId: @entangle('estado_id'), reclamo: @entangle('reclamo') }" class="px-0 mx-0 container-fluid">
-        <div class="mb-1 row row-cols-auto justify-content-between">
+        <div class="mb-0 row row-cols-auto justify-content-between">
             {{-- <div class="mt-2 mb-4 container-fluid"> --}}
             <div class="col d-flex">
                 <h5>PEDIDOS</h5>
@@ -14,180 +14,260 @@
                     </div>
                 </div>
             @endif
-            <div class="col">
+            <div class="col"> 
                 {{-- Imprimir OT --}}
-                <button wire:click="editarOt('imprimir-ot')" class="btn btn-dark btn-sm ps-1" data-toggle="tooltip" title='Imprimir OT.'>
-                    <i class="bi bi-credit-card-2-front text-outline-outline-success text-bold text-md-center pe-1 ps-1"></i>
-                    Imprimir OT
-                </button>
+                <a  class="btn btn-dark btn-sm ps-1 me-4" :class="{'disabled':!selectedRow}"
+                href="{{ route('ots.report', $pedido_id) }}" target="_blank"><i class="bi bi-credit-card-2-front text-outline-outline-success text-bold text-md-center pe-1 ps-1"></i>Imprimir OT</a>
 
                 {{-- Export EXCEL --}}
-                <button wire:click="exportExcel" class="btn btn-success btn-sm" data-toggle="tooltip" title='Exportar Pedidos a Excel'>
+                {{-- <button wire:click="exportExcel" :class="{'disabled':!selectedRow}" class="btn btn-success btn-sm" data-toggle="tooltip" title='Exportar Pedidos a Excel'>
                     <i class='fas fa-file-excel'></i> 
-                </button>
+                </button> --}}
                 {{-- Export PDF --}}
-                <button wire:click="exportPdf" class="btn btn-danger btn-sm me-5" data-toggle="tooltip" title='Exportar Pedidos a Pdf'>
+                {{-- <button wire:click="exportPdf" :class="{'disabled':!selectedRow}" class="btn btn-danger btn-sm me-5" data-toggle="tooltip" title='Exportar Pedidos a Pdf'>
                     <i class='fas fa-file-pdf'></i>
-                </button> 
+                </button>  --}}
 
                 {{-- Cambiar Estado --}}
-                <button wire:click="editarOt('estado')" class="btn btn-info btn-sm" data-toggle="tooltip" title='Cambiar Estado del Pedido.'>
+                <button wire:click="editarOt('estado')" :class="{'disabled':!selectedRow}" class="btn btn-info btn-sm" data-toggle="tooltip" title='Cambiar Estado del Pedido.'>
                     <i class="bi bi-repeat text-outline-outline-success text-bold text-md-center"></i>
                     Cambiar Estado Pedido
                 </button>
-
-                <button wire:click.prevent="editarOt('reclamo')" class="text-white btn btn-warning btn-sm ps-1" data-toggle="tooltip" title='Agregar Reclamo.'>
+                {{-- RECLAMO --}}
+                <button wire:click.prevent="editarOt('reclamo')" :class="{'disabled':!selectedRow}" class="text-white btn btn-warning btn-sm ps-1 me-4" data-toggle="tooltip" title='Agregar Reclamo.'>
                     <i class="bi bi-plus-circle pe-1 ps-1"></i>
                     Reclamo
                 </button>
                 {{-- Agregar PEDIDO --}}
                 <button wire:click="editarOt('create')" class="btn btn-info btn-sm" data-toggle="tooltip" title='Nuev Pedido.'>
                     <i class="bi bi-plus-circle text-outline-outline-success text-bold text-md-center"></i>
+                    Nuevo Pedido
                 </button>
                 {{-- Mostrar PEDIDO --}}
-                <button wire:click="editarOt('show')" class="btn btn-success btn-sm" data-toggle="tooltip" title='Mostrar datos Pedido.'>
+                <button wire:click="editarOt('show')" :class="{'disabled':!selectedRow}" class="btn btn-success btn-sm" data-toggle="tooltip" title='Mostrar datos Pedido.'>
                     <i class="bi bi-eye text-outline-success text-bold text-md-center"></i>
                 </button>
                 {{-- Editar PEDIDO --}}
-                <button wire:click="editarOt('edit')" class="btn btn-primary btn-sm" data-toggle="tooltip" title='Editar Pedido.'>
+                <button wire:click="editarOt('edit')" :class="{'disabled':!selectedRow}" class="btn btn-primary btn-sm" data-toggle="tooltip" title='Editar Pedido.'>
                     <i class="bi bi-pencil-fill text-outline-primary text-bold text-md-center"></i>
                 </button>
                 {{-- Eliminar PEDIDO --}}
-                <button wire:click="editarOt('delete')" class="btn btn-danger btn-sm" data-toggle="tooltip" title='Borrar Pedido'>
+                <button wire:click="editarOt('delete')" :class="{'disabled':!selectedRow}" class="btn btn-danger btn-sm" data-toggle="tooltip" title='Borrar Pedido'>
                     <i class="bi bi-trash text-outline-danger text-bold text-md-center"></i>
                 </button>
             </div>
         </div>            
-
-            <div class="px-0 py-1 card-body">
-                <div class="flex-row d-flex bd-highlight">
-                    <div class="py-1 bd-highlight">
-                        <select wire:model="selectedMes" class="form-select form-select-sm me-1 m-0 @error('selectedMes') is-invalid @enderror" title="Seleccione un mes.">
-                            <option value="0">Seleccione un mes</option>
-                            @foreach($meses as $mes)
-                                <option value="{{ $mes->id }}">
-                                    {{ $mes->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>    
-                    <div class="py-1 bd-highlight ps-2">
-                        <select wire:model="selectedEstado" class="form-select form-select-sm @error('selectedEstado') is-invalid @enderror" title="Seleccione un estado.">
-                            <option value="0">Seleccione un Estado</option>
-                            @foreach($estados as $estado)
-                                <option value="{{ $estado->id }}">
-                                    {{ $estado->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>    
-                    <div class="p-1 bd-highlight ps-2">
-                        <input type="search" wire:model="search" class="flex-1 form-control form-control-sm me-3" placeholder="Ingrese busqueda...">
-                    </div>
-                    <div class="justify-content-end pagination-sm">
-                        {{ $registros->links() }}
-                    </div>
+        <div class="row row-cols-auto justify-content-between">
+            <div class="col d-flex">
+                <div class="py-1 bd-highlight">
+                    <select wire:model="selectedMes" class="form-select form-select-sm me-1 m-0 @error('selectedMes') is-invalid @enderror" title="Seleccione un mes.">
+                        <option value="0">Seleccione un mes</option>
+                        @foreach($meses as $mes)
+                            <option value="{{ $mes->id }}">
+                                {{ $mes->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="py-1 bd-highlight ps-2">
+                    <select wire:model="selectedEstado" class="form-select form-select-sm @error('selectedEstado') is-invalid @enderror" title="Seleccione un estado.">
+                        <option value="0">Seleccione un Estado</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id }}">
+                                {{ $estado->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="p-1 bd-highlight ps-2">
+                    <input type="search" wire:model="search" class="flex-1 form-control form-control-sm me-3" placeholder="Ingrese busqueda...">
                 </div>
             </div>
+            @if (session('status'))
+                <div class="col-md-auto me-3">
+                    <div class="py-0 m-0 ps-0 pe-3 alert alert-{{ $color_status }}" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)">
+                        <ul>
+                            <li><small>{{ session('status') }}</small></li>
+                        </ul>
+                    </div>
+                </div>
+            @endif
+            <div class="col d-flex">
+                <div class="pt-2">
+                    {{ $registros->links() }}
+                </div>
+                <div class="p-1 bd-highlight">
+                    <select wire:model="selectedPerPage" class="form-select form-select-sm me-1 m-0 @error('selectedPerPage') is-invalid @enderror" title="Seleccione cantidad de páginas.">
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>    
+            </div>
+        </div> 
+        {{-- <div class="row row-cols-auto justify-content-between ps-3 p-0 m-0">
+            <div class="col d-flex p-0 m-0">
+                <div class="py-1 bd-highlight">
+                    <select wire:model="selectedMes" class="form-select form-select-sm me-1 m-0 @error('selectedMes') is-invalid @enderror" title="Seleccione un mes.">
+                        <option value="0">Seleccione un mes</option>
+                        @foreach($meses as $mes)
+                            <option value="{{ $mes->id }}">
+                                {{ $mes->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="py-1 bd-highlight ps-2">
+                    <select wire:model="selectedEstado" class="form-select form-select-sm @error('selectedEstado') is-invalid @enderror" title="Seleccione un estado.">
+                        <option value="0">Seleccione un Estado</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id }}">
+                                {{ $estado->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="p-1 bd-highlight ps-2">
+                    <input type="search" wire:model="search" class="flex-1 form-control form-control-sm me-3" placeholder="Ingrese busqueda...">
+                </div>
+            </div>
+            <div class="col pagination-sm p-0 m-0">
+                {{ $registros->links() }}
+            </div>
+        </div> --}}
 
-        <div class="table-responsive" x-data="{indexRow: 0}">
+        {{-- FILTRO - BUSQUEDA --}}
+        {{-- <div class="px-0 py-1 card-body">
+            <div class="flex-row d-flex bd-highlight">
+                <div class="py-1 bd-highlight">
+                    <select wire:model="selectedMes" class="form-select form-select-sm me-1 m-0 @error('selectedMes') is-invalid @enderror" title="Seleccione un mes.">
+                        <option value="0">Seleccione un mes</option>
+                        @foreach($meses as $mes)
+                            <option value="{{ $mes->id }}">
+                                {{ $mes->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="py-1 bd-highlight ps-2">
+                    <select wire:model="selectedEstado" class="form-select form-select-sm @error('selectedEstado') is-invalid @enderror" title="Seleccione un estado.">
+                        <option value="0">Seleccione un Estado</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id }}">
+                                {{ $estado->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>    
+                <div class="p-1 bd-highlight ps-2">
+                    <input type="search" wire:model="search" class="flex-1 form-control form-control-sm me-3" placeholder="Ingrese busqueda...">
+                </div>
+                <div class="flex-column-reverse pagination-sm">
+                    {{ $registros->links() }}
+                </div>
+            </div>
+        </div> --}}
+        <div class="container-fluid table-responsive" x-data="{indexRow: 0}">
             {{-- <table class="table table-hover table-bordered my-table"> --}}
-                
-            <table class="table table-hover table-bordered table-responsive-md text-nowrap my-table table-sticky">
-                <thead class="align-middle">
+            {{-- <table class="table table-hover table-bordered table-responsive-md text-nowrap my-table table-sticky"> --}}
+            <table class="table table-hover text-nowrap">
+                {{-- <thead class="align-middle"> --}}
+                <thead style="background-color: #4082B0; color: #dee2e6;">
                     <tr>
                         {{-- <th><i class="bi bi-printer" title="Imprimir Orden Trabajo"></i></th> --}}
                         <th>*</th>
                         <th>E</th>
                         <th class="cursor-pointer"
+                                wire:click='order("numero_ot")'>
+                                Nro. OT
+                                @if ($sortField == 'numero_ot')
+                                    @if ($sortOrden == 'asc')
+                                        {{-- <i class="bi bi-chevron-up"></i> --}}
+                                        <i class="bi bi-caret-up-fill"></i>
+                                    @else
+                                        {{-- <i class="bi bi-chevron-down"></i> --}}
+                                        <i class="bi bi-caret-down-fill"></i>
+                                    @endif
+                                @else
+                                    <i class="bi bi-chevron-expand"></i>
+                                @endif
+                        </th>
+                        <th class="cursor-pointer"
                                 wire:click='order("fecha_pedido")'>
                                 FECHA PEDIDO
                                 @if ($sortField == 'fecha_pedido')
                                     @if ($sortOrden == 'asc')
-                                        <i class="float-end bi bi-chevron-up"></i>
+                                        {{-- <i class="bi bi-chevron-up"></i> --}}
+                                        <i class="bi bi-caret-up-fill"></i>
                                     @else
-                                        <i class="float-end bi bi-chevron-down"></i>
+                                        {{-- <i class="bi bi-chevron-down"></i> --}}
+                                        <i class="bi bi-caret-down-fill"></i>
                                     @endif
                                 @else
-                                    <i class="float-end bi bi-chevron-expand"></i>
+                                    <i class="bi bi-chevron-expand"></i>
                                 @endif
                         </th>
                         <th class="cursor-pointer" wire:click='order("fecha_entrega")'>
                             FECHA ENTREGA
                             @if ($sortField == 'fecha_entrega')
                                 @if ($sortOrden == 'asc')
-                                    <i class="float-end bi bi-chevron-up"></i>
+                                    <i class="bi bi-caret-up-fill"></i>
                                 @else
-                                    <i class="float-end bi bi-chevron-down"></i>
+                                <i class="bi bi-caret-down-fill"></i>
                                 @endif
                             @else
-                                <i class="float-end bi bi-chevron-expand"></i>
+                                <i class="bi-chevron-expand"></i>
                             @endif
                         </th>
                         <th class="cursor-pointer" wire:click='order("razonsocial")'>
                             CLIENTE
                             @if ($sortField == 'razonsocial')
                                 @if ($sortOrden == 'asc')
-                                    <i class="float-end bi bi-chevron-up"></i>
+                                <i class="bi bi-caret-up-fill"></i>
                                 @else
-                                    <i class="float-end bi bi-chevron-down"></i>
+                                <i class="bi bi-caret-down-fill"></i>
                                 @endif
                             @else
-                                <i class="float-end bi bi-chevron-expand"></i>
+                                <i class="bi bi-chevron-expand"></i>
                             @endif
                         </th>
-
                         <th>TRABAJO</th>
                         <th class="text-center">A-L-E</th>
                         <th class="text-center">CANT.</th>
                         <th class="text-center">COLOR</th>
                         <th class="text-center">T</th>      {{-- Tratamiento --}}
                         <th class="text-center">F</th>      {{-- FUELLE --}}
-                        <th class="text-center">Corte</th>
-                        <th>OBSERVACIONES</th>
-                        {{-- <th>OBSERVACIONES 2</th>
-                        <th>OBSERVACIONES 3</th>
-                        <th>OBSERVACIONES 4</th>
-                        <th>OBSERVACIONES 5</th>
-                        <th>OBSERVACIONES 6</th>
-                        <th>OBSERVACIONES 7</th> --}}
+                        <th class="text-center">CORTE</th>
+                        <th class="text-center">P.UNIT</th>
+                        <th class="">OBSERVACIONES</th>
                     </tr> 
                 </thead>
-                <tbody class="my-body-table">
+                {{-- <tbody class="my-body-table"> --}}
+                <tbody>
                     @foreach ( $registros as $reg)
                         <tr id={{ $reg->id }}
                             x-on:click="selected !== {{ $reg->id }} ? selected = {{ $reg->id }} : selected = null, selectedRow = selected, pedidoId = selected, estadoId = {{ $reg->estado_id }}, reclamo = {{ $reg->reclamo }}" 
                             :class="{'bg-success text-black':selected === {{ $reg->id }} , 'bg-primary ':{{ $reg->estado_id }} == 4, 'bg-warning':{{ $reg->reclamo }} && selected != {{ $reg->id }}}"
                             >
-                            {{-- @if ($reg->estado_id==1)
-                                <td>
-                                    <a href="#" wire:click.prevent="generarOt({{ $reg->id }})" class="text-dark" data-toggle="tooltip" title='Modificar OT'><i class="bi bi-printer"></i></a>
-                                </td>
-                            @else
-                                <td> </td>
-                            @endif --}}
-                            
                             <td :class="{'bg-primary':{{ $reg->estado_id }} == 4, 'bg-warning':{{ $reg->reclamo }} }">
-                                {{ ($reg->estado_id==2) ? '*' : ' ' }}
+                                {{ ($reg->estado_id==2) ? '*' : '-' }}
                             </td>
                             <td title="{{ $reg->estado_nombre }}">{{ substr($reg->estado_nombre,0,1) }}</td>
+                            <td>{{ $reg->numero_ot }}</td>
                             <td>{{ date('d/m/Y', strtotime($reg->fecha_pedido)) }}</td>
                             <td>{{ date('d/m/Y', strtotime($reg->fecha_entrega)) }}</td>
                             <td title="{{ $reg->razonsocial }}">{{ $reg->razonsocial }}</td>
-                            <td>{{ $reg->trabajo_nombre }}</td>
-                            <td>{{ $reg->ancho . ' - ' . $reg->largo . ' - ' . $reg->espesor }}</td>
+                            <td title="{{ $reg->trabajo_nombre }}">{{ substr($reg->trabajo_nombre,0,30) }}</td>
+                            <td class="text-center">{{ $reg->ancho . '-' . $reg->largo . '-' . $reg->espesor }}</td>
                             <td>{{ $reg->cantidad_bolsas }}</td>
                             <td>{{ $reg->color->nombre }}</td>
                             <td>{{ $reg->tratado->nombre }}</td>
                             <td>{{ $reg->bolsa_largo_fuelle }}</td>
                             <td>{{ $reg->corte->nombre }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            {{-- <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
-                            <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td> --}}
+                            <td>{{ $reg->precio_unitario }}</td>
+                            <td title="{{ $reg->observaciones }}">{{ substr($reg->observaciones,0,50) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -199,7 +279,7 @@
         {{-- <div class="py-0 pagination justify-content-end pagination-sm">
             {{ $registros->links() }}
         </div> --}}
-        @include('livewire.pedidos.reclamo-create')
+        @include('livewire.pedidos.reclamo-create') 
         @include('livewire.pedidos.cambiar-estado')
 
         <x-zmodal id="imprimirModal" maxWidth="md">

@@ -19,7 +19,7 @@
         </div>
 
         <div class="mt-2">
-            <x-zform-area wire:model.lazy='estado_observaciones' rows=8 name="estado_observaciones" label="Observaciones" placeholder='' />
+            <x-zform-area wire:model.lazy='newEstadoObservaciones' rows=8 name="newEstadoObservaciones" label="Observaciones" placeholder='' />
         </div>
     </x-slot>
     <x-slot name="footer">

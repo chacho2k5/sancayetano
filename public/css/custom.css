@@ -150,4 +150,75 @@ table.table>tbody>tr:hover th {
     /* background-color: var(--bs-warning); */
 }
 
+.mi-tabla thead tr th {
+  /* table-layout: fixed;
+  width: 100%; */
+  border-bottom: 2px solid #0F5D9D;
+  /* background-color: #375a7f; */
+  background-color: #00B08E;
+  color: #dee2e6;   // Color de texto
+  background-color: #4082B0;
+  background-color: #1D71B8;  // Azul
+  background-color: #FE8F4D;  // Azul
+  background-color: #D5D5D5;  // Azul
+  background-color: #F3AA02;
+  background-color: #00B08E;    // Verde
+  background-color: #4082B0;  // Azul med
+  background-color: #D17D00;  // Naranja ladrillo
 
+  
+
+
+
+}
+
+.my-table-xxxx {
+  /* font-weight: normal; */
+  text-transform: uppercase;
+  /* font: .9rem 'Nunito', sans-serif; */
+  font: .8rem 'Nunito', sans-serif;
+  font-weight: bold;
+
+  color: #dee2e6;
+
+  box-sizing: border-box;
+  border-collapse: collapse;
+  /* font-size: .8rem; */
+  width: 100% !important;
+  margin-bottom: 0px !important;
+
+    /* Colores
+    blue-200 #9ec5fe
+    blue-300 #6ea8fe
+    blue-400 #3d8bfd
+    blue - #052C65
+    blue-700 #084298
+    blue-800 #052c65
+    blue-900 #031633
+
+    green-300 #75b798
+    green-400 #479f76
+    green-600 #146c43
+    green-700 #0f5132
+    green-800 #0a3622
+
+    teal-700 #13795b
+    teal-900 #06281e
+
+    orange-100 #ffe5d0
+    orange-200 #fecba1
+    orange-300 #feb272
+
+    cyan-800 #055160
+    cyan-900 #032830
+
+    gray-200 #e9ecef
+    gray-300 #dee2e6
+    gray-800 #343a40
+
+    *** Medium Electric Blue  #0F5D9D
+    */
+
+    /* border-bottom: 2px solid var(--bs-gray-300); */
+    /* background-color: var(--bs-warning); */
+}

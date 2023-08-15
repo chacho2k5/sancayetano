@@ -8,6 +8,7 @@ use App\Models\Color;
 use App\Models\Corte;
 use App\Models\Pedido;
 use App\Models\Cliente;
+use App\Models\Densidad;
 use App\Models\Tratado;
 use Livewire\Component;
 use App\Models\Material;
@@ -32,24 +33,45 @@ class PedidoUpdate extends Component
     // Color notificaciones
     public $color_status = 'danger';        // Color para el alerta de mensajes via status
 
+    // Estado TRABAJOS
+    public $activar_trabajo;
+    public $trabajo_boton_activar;
+    public $trabajo_cantidad_activos;
+    public $trabajo_cantidad_desactivos;
+
     // Estados
     public $estado_cargada = 1;
     public $estado_cargada_nombre = 'CARGADA';
     public $estado_generada = 2;
     public $estado_en_proceso = 3;
     public $estado_terminada = 4;
-    public $estado_despachada = 5;
+    public $estado_facturado = 5;
     public $estado_entregada = 6;
     public $estado_anulada = 7;
 
     // Variables de MODELOS
     public $clientes;
     public $colores;
+    public $densidades;
     public $materiales;
     public $bolsas;
     public $tratados;
     public $cortes;
     public $articulos_ot = [];      // Conjunto de articulos obtenidos de la ORDEN DE TRABAJO
+
+    // CREATE CLIENTE
+    public $cliente_razonsocial = null;
+    public $cliente_cuit = null;
+    public $cliente_telefono1 = null;
+    public $cliente_correo = null;
+    public $cliente_calle_nombre = null;
+    public $cliente_calle_numero = null;
+    public $cliente_codigo_postal = null;
+    public $cliente_barrio_nombre = null;
+    public $cliente_localidad_nombre = null;
+
+    // CREATE COLOR
+    public $color_nuevo = null;
 
     // Campos formulario
     public $selectedArticulo;       // ID del articulo seleccionado de la lista de trabajos
@@ -63,12 +85,25 @@ class PedidoUpdate extends Component
     public $trabajo_nombre;
     public $ancho, $largo, $espesor;
     public $selectedBolsa, $bolsa_id, $bolsa_nombre, $bolsa_fuelle, $bolsa_largo_fuelle;
-    public $selectedMaterial, $material_id, $material_nombre, $material_pesoespecifico;
+    public $selectedDensidad, $densidad_id, $densidad_nombre, $densidad_pesoespecifico;
+    public $selectedMaterial, $material_id, $material_nombre;
     public $selectedColor, $color_id, $color_nombre;
+    public $selectedColor1, $color_id_1, $color_nombre_1;
+    public $selectedColor2, $color_id_2, $color_nombre_2;
+    public $selectedColor3, $color_id_3, $color_nombre_3;
+    public $selectedColor4, $color_id_4, $color_nombre_4;
     public $selectedTratado, $tratado_id, $tratado_nombre, $tratado_formula;
     public $selectedCorte, $corte_id, $corte_nombre;
-    public $cantidad_bolsas, $metros, $peso, $precio_unitario, $precio_total, $observaciones;
-    public $trabajo_activo = true;
+    public $cantidad_bolsas, $metros, $peso, $precio_unitario, $precio_total;
+    public $observaciones, $observaciones_extrusion, $observaciones_impresion, $observaciones_corte;
+    public $trabajo_activo;
+
+    // RECLAMOS
+    public $reclamosCliente = [];       // Lista de reclamos para el cliente seleccionado
+    public $selectedReclamo;
+    public $cantReclamosCliente = 0;    // Cant. de reclamos del cliente
+    public $reclamoDetalle = null;
+
 
     protected $listeners = [
         'updateTratado' => 'updatedselectedTratado',
@@ -79,6 +114,33 @@ class PedidoUpdate extends Component
 
         $this->pedido_id = $id;
         $this->action = $action;
+
+        $this->bolsa_fuelle = false;
+        $this->bolsa_largo_fuelle = 0;
+        $this->tratado_formula = 0;
+        $this->densidad_pesoespecifico = 0;
+
+        $this->clientes = Cliente::select('id','razonsocial')
+                            ->orderBy('razonsocial', 'asc')
+                            ->get();
+        $this->colores = Color::select('*')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
+        $this->densidades = Densidad::select('*')
+                            ->orderBy('densidad', 'asc')
+                            ->get();                            
+        $this->materiales = Material::select('*')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
+        $this->bolsas = Bolsa::select('*')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
+        $this->tratados = Tratado::select('*')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
+        $this->cortes = Corte::select('*')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
 
         switch ($this->action) {
             case 'create';
@@ -99,26 +161,6 @@ class PedidoUpdate extends Component
             default:
                 break;
         }
- 
-        $this->clientes = Cliente::select('id','razonsocial')
-                            ->orderBy('razonsocial', 'asc')
-                            ->get();
-        $this->colores = Color::select('id','nombre')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-        $this->materiales = Material::select('id','nombre')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-        $this->bolsas = Bolsa::select('id','nombre')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-        $this->tratados = Tratado::select('id','nombre', 'formula')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-        $this->cortes = Corte::select('id','nombre')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-
     }
 
     public function render()
@@ -129,10 +171,15 @@ class PedidoUpdate extends Component
 
     public function asignarCampos() 
     {
+        // Carga los campos del modelo a las variables del formulario.
+        // Es un perno, seguro se puede de otra forma.
+        //
         $reg = Pedido::select('*')
                     ->where('id',$this->pedido_id)
                     ->first();
                     
+        // dd(date('Y-m-d', strtotime($reg->estado_fecha)));
+
         if ($reg->count() > 0) {
             $this->numero_ot = $reg->numero_ot;
             $this->numero_ot_mensual = $reg->numero_ot_mensual;
@@ -147,94 +194,99 @@ class PedidoUpdate extends Component
             $this->ancho = $reg->ancho;
             $this->largo = $reg->largo;
             $this->espesor = $reg->espesor;
+            $this->selectedDensidad = $reg->densidad_id;
+            $this->densidad_pesoespecifico = $reg->densidad_pesoespecifico;
             $this->selectedMaterial = $reg->material_id;
-            $this->material_pesoespecifico = $reg->material_pesoespecifico;
+            $this->material_nombre = $reg->material_nombre;
             $this->selectedColor = $reg->color_id;
+            $this->selectedColor1 = $reg->color_id_1;
+            $this->selectedColor2 = $reg->color_id_2;
+            $this->selectedColor3 = $reg->color_id_3;
+            $this->selectedColor4 = $reg->color_id_4;
+            $this->color_nombre_1 = $reg->color_nombre_1;
+            $this->color_nombre_2 = $reg->color_nombre_2;
+            $this->color_nombre_3 = $reg->color_nombre_3;
+            $this->color_nombre_4 = $reg->color_nombre_4;
             $this->selectedBolsa = $reg->bolsa_id;
             $this->bolsa_largo_fuelle = $reg->bolsa_largo_fuelle;
             $this->selectedTratado = $reg->tratado_id;
             $this->selectedCorte = $reg->corte_id;
             $this->cantidad_bolsas = $reg->cantidad_bolsas;
-            $this->metros = $reg->metros;
-            $this->peso = $reg->peso;
+            $this->metros = round($reg->metros,2);
+            $this->peso = round($reg->peso,2);
+            $this->precio_unitario = $reg->precio_unitario;
             $this->observaciones = $reg->observaciones;
+            $this->observaciones_extrusion = $reg->observaciones_extrusion;
+            $this->observaciones_impresion = $reg->observaciones_impresion;
+            $this->observaciones_corte = $reg->observaciones_corte;
             $this->trabajo_activo = $reg->trabajo_activo;
+
+            // Actualizo los combos para no tener problemas en las formulas.
+            $reg2 = $this->tratados->find($reg->tratado_id);
+            $this->tratado_nombre = $reg2->nombre;
+            $this->tratado_formula = $reg2->formula;
+
+            $reg3 = $this->densidades->find($reg->densidad_id);
+            $this->densidad_pesoespecifico = $reg3->pesoespecifico;
+            $this->densidad_nombre = $reg3->nombre;
+
+            $reg4 = $this->bolsas->find($reg->bolsa_id);
+            $this->bolsa_nombre = $reg4->nombre;
+            $this->bolsa_fuelle = $reg4->fuelle;
         }
     }
     
-    protected function rules() {
-        return [
-            // 'numero_ot' => 'required|string|max:20',
-            'fecha_pedido' => 'required',
-            'fecha_entrega' => 'after_or_equal:fecha_pedido' ,
-            'selectedCliente' => 'required',
-            'trabajo_nombre' => 'required|between:1,80',
-            'ancho' => 'required|numeric|between:1,9999',
-            'largo' => 'required|numeric|between:1,9999',
-            'espesor' => 'required|numeric|between:1,9999',
-            'selectedColor' => 'required',
-            'selectedMaterial' => 'required',
-            'selectedBolsa' => 'required',
-            'selectedTratado' => 'required',
-            'selectedCorte' => 'required',
-            'cantidad_bolsas' => 'required|numeric|between:1,999999',
-            'bolsa_largo_fuelle' => 'numeric|between:1,99999',
-            'observaciones' => 'string|nullable|max:5000',
-
-        ];
-    }
-
-    public function updated($propertyName)
-    {
-        $this->validateOnly($propertyName);
-    }
-
-    protected $validationAttributes = [
-        'fecha_pedido' => 'Fecha del Pedido',
-        'fecha_entrega' => 'Fecha de Entrega',
-        'selectedcliente' => 'CLIENTE',
-        'trabajo_nombre' => 'Nombre Trabajo',
-        'ancho' => 'Ancho',
-        'largo' => 'Largo',
-        'espesor' => 'Espesor',
-        'ancho' => 'Ancho',
-        'cantidad_bolsas' => 'Cantidad de Bolsas',
-        'observaciones' => 'Observaciones',
-    ];
-
-    protected $messages = [
-        // 'numero_ot' => [
-        //     'required' => 'Debe ingresar el Nro. de la OT.',
-        //     'min' => 'El Nro. de la OT debe ser mayor a 0 (cero)',
-        //     'numeric' => 'INGRESE UN VALOR NUMERICO',
-        // ],
-        'selectedcliente' => [
-            'required' => 'Debe seleccionar un CLIENTE.',
-        ],
-        // 'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
-        // 'invitation.email.unique.invitations' => 'The email has already been invited.',
-        // 'invitation.email.unique.users' => 'An account with this email has already been registered.',
-        // 'text.min' => 'Keep typing...'
-    ];
-
     public function updatedFechaPedido($value) {
-        // $fecha = date('d-m-Y', strtotime($value));
-        $dia = date('d', strtotime($value));
-        $mes = date('m', strtotime($value));
-        $año = date('y', strtotime($value));
-        
+        $aMes = array("ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC");
+        $mes = date('n', strtotime($value));
+                
         $this->numero_ot_mensual = Pedido::ultimaOt($mes) + 1;
-        $this->numero_ot = $dia . $mes . $año . '-' . $this->numero_ot_mensual;
-
-        // dd($this->numero_ot);
+        $this->numero_ot = $aMes[date('n', strtotime($value))-1] . '-' . $this->numero_ot_mensual;
     }
 
     public function updatedselectedCliente($value) {
         if($value ==! null) {
             $cliente = $this->clientes->find($value);
             $this->cliente_nombre = $cliente->razonsocial;
+            $this->trabajo_cantidad_activos = Pedido::cantidadActivos($this->selectedCliente, true);
+            $this->trabajo_cantidad_desactivos = Pedido::cantidadActivos($this->selectedCliente, false);
+            $this->cantReclamosCliente = Pedido::getReclamosCliente($this->selectedCliente);
+            // Aca busco los reclamos
         } else {
             $this->reset(['cliente_nombre']);
+        }
+    }
+
+    public function updatedCantidadBolsas($value) {
+        // if($value <> 0) {
+        //     // $this->cantidad_bolsas = $value;
+        // } else {
+        //     $this->reset(['cantidad_bolsas', 'metros', 'peso']);
+        // }
+        $this->calcularMetros();
+        $this->calcularPeso();
+    }
+
+    public function updatedselectedDensidad($value) {
+        if($value ==! null) {
+            $db = $this->densidades->find($value);
+            $this->densidad_pesoespecifico = $db->pesoespecifico;
+            $this->densidad_nombre = $db->nombre;
+            // dd($this->densidad_nombre . ' ' . $this->densidad_pesoespecifico);
+        } else {
+            $this->reset(['densidad_pesoespecifico', 'densidad_nombre', 'peso']);
+        }
+
+        $this->calcularPeso();
+    }
+
+    public function updatedselectedMaterial($value) {
+        if ($value ==! null) {
+            $db = $this->materiales->find($value);
+            $this->material_nombre = $db->nombre;
+            // dd($this->material_nombre);
+        } else {
+            $this->reset(['material_nombre']);
         }
     }
 
@@ -247,16 +299,38 @@ class PedidoUpdate extends Component
         }
     }
 
-    public function updatedselectedMaterial($value) {
-        if($value ==! null) {
-            $material = $this->materiales->find($value);
-            $this->material_pesoespecifico = $material->pesoespecifico;
-            $this->material_nombre = $material->nombre;
-            // dd($this->material_nombre);
+    public function updatedselectedColor1($value) {
+        if ($value ==! null) {
+            $color = $this->colores->find($value);
+            $this->color_nombre_1 = $color->nombre;
+            // dd($this->color_nombre_1);
         } else {
-            $this->reset(['material_pesoespecifico', 'material_nombre', 'peso']);
+            $this->reset(['color_nombre_1']);
         }
-        $this->calcularPeso();
+    }
+    public function updatedselectedColor2($value) {
+        if ($value ==! null) {
+            $color = $this->colores->find($value);
+            $this->color_nombre_2 = $color->nombre;
+        } else {
+            $this->reset(['color_nombre_2']);
+        }
+    }
+    public function updatedselectedColor3($value) {
+        if ($value ==! null) {
+            $color = $this->colores->find($value);
+            $this->color_nombre_3 = $color->nombre;
+        } else {
+            $this->reset(['color_nombre_3']);
+        }
+    }
+    public function updatedselectedColor4($value) {
+        if ($value ==! null) {
+            $color = $this->colores->find($value);
+            $this->color_nombre_4 = $color->nombre;
+        } else {
+            $this->reset(['color_nombre_4']);
+        }
     }
 
     public function updatedselectedBolsa($value) {
@@ -264,8 +338,9 @@ class PedidoUpdate extends Component
             $bolsa = $this->bolsas->find($value);
             $this->bolsa_nombre = $bolsa->nombre;
             $this->bolsa_fuelle = $bolsa->fuelle;
+            $this->bolsa_largo_fuelle = '';
         } else {
-            $this->reset(['bolsa_nombre', 'bolsa_fuelle']);
+            $this->reset(['bolsa_nombre', 'bolsa_fuelle', 'bolsa_largo_fuelle']);
         }
     }
 
@@ -289,16 +364,6 @@ class PedidoUpdate extends Component
         }
         $this->calcularMetros();
     }
-    
-    public function updatedCantidadBolsas($value) {
-        if($value <> 0) {
-            $this->cantidad_bolsas = $value;
-        } else {
-            $this->reset(['cantidad_bolsas', 'metros', 'peso']);
-        }
-        $this->calcularMetros();
-        $this->calcularPeso();
-    }
 
     public function updatedEspesor($value) {
         if($value == false) {
@@ -315,72 +380,210 @@ class PedidoUpdate extends Component
     }
 
     public function updatedLargo($value) {
-        if($value == false) {
-            $this->reset(['largo', 'metros', 'peso']);
-        }
+        // if($value == false) {
+        //     $this->reset(['largo', 'metros', 'peso']);
+        // }
         $this->calcularMetros();
         $this->calcularPeso();
     }
 
     public function calcularMetros() {
         // Metros = cant. bolsas * (largo/100) * tratado
-        $this->metros = $this->cantidad_bolsas * ($this->largo/100) * $this->tratado_formula;
+        // if(!is_numeric($this->cantidad_bolsas)) {
+        //     $this->cantidad_bolsas = null;
+        // }
+        // if(!is_numeric($this->largo)) {
+        //     $this->largo = null;
+        // }
+        // if(!is_numeric($this->tratado_formula)) {
+        //     $this->tratado_formula = null;
+        // }
+
+        // if(is_numeric($this->cantidad_bolsas) && is_numeric($this->largo) && is_numeric($this->tratado_formula)) {
+        //     $this->metros = round($this->cantidad_bolsas * ($this->largo/100) * $this->tratado_formula, 2);
+        // } else {
+        //     $this->metros = 0;
+        // }
+
+        $this->metros = round($this->cantidad_bolsas * ($this->largo/100) * $this->tratado_formula,2);
         // dd($this->cantidad_bolsas . ' - ' . ($this->largo/100) . ' - ' . $this->tratado_formula);
     }
 
     public function calcularPeso() {
         // Peso = (((Ancho/100) * (Largo/100) * Espesor * Peso Especifico) * Cant. Bolsas) / 1000
-        $this->peso = ((($this->ancho/100) * ($this->largo/100) * $this->espesor * $this->material_pesoespecifico) * $this->cantidad_bolsas) / 1000;
+        if(!is_numeric($this->ancho)) {
+            $this->ancho = null;
+        }
+        if(!is_numeric($this->largo)) {
+            $this->largo = null;
+        }
+        if(!is_numeric($this->espesor)) {
+            $this->espesor = null;
+        }
+        if(!is_numeric($this->densidad_pesoespecifico)) {
+            $this->densidad_pesoespecifico = null;
+        }
+        if(!is_numeric($this->cantidad_bolsas)) {
+            $this->cantidad_bolsas = null;
+        }
+
+        $this->peso = round(((($this->ancho/100) * ($this->largo/100) * $this->espesor * $this->densidad_pesoespecifico) * $this->cantidad_bolsas) / 1000,2);
     }
 
-    public function trabajosModal($cliente) {
+    public function reclamosModal($cliente) 
+    {
+        // Muestra la lista de reclamos para el cliente seleccionado.
 
-        $this->modal_title = "LISTA DE ARTICULOS / TRABAJOS";
+        $this->modal_title = "LISTA DE RECLAMOS";
         $this->modal_width = 'lg';
 
-        $this->queryArticulosOT($cliente);
+        $this->reclamosCliente = Pedido::showReclamosCliente($cliente);
+
+        $this->dispatchBrowserEvent('show-reclamos-modal');
+    }
+
+    public function showReclamoDetalle($id) {
+        $this->reset('reclamoDetalle');
+        $this->reclamoDetalle = Pedido::getReclamoDetalle($id);
+    }
+
+    public function cancelReclamoModal() {
+
+        $this->dispatchBrowserEvent('close-modal');
+        $this->reset('reclamoDetalle');
+    }
+
+    public function trabajosModal($cliente, $estado) {
+
+        if ($estado == 1) {
+            $this->activar_trabajo = true;
+            $this->modal_title = "LISTA DE TRABAJOS";
+            $this->trabajo_boton_activar = "Desactivar trabajo";
+        } else {
+            $this->activar_trabajo = false;
+            $this->modal_title = "LISTA DE TRABAJOS DESACTIVADOS";
+            $this->trabajo_boton_activar = "Activar trabajo";
+        }
+
+        $this->modal_width = 'lg';
+
+        $this->queryArticulosOT($cliente, $estado);
 
         $this->dispatchBrowserEvent('show-articulos-modal');
     }
 
-    public function queryArticulosOT($id) {
+    public function cambiarEstadoTrabajo() {
+
+        Pedido::where('id',$this->selectedArticulo)
+             ->update(['trabajo_activo' => !$this->activar_trabajo]);
+        
+        $this->queryArticulosOT($this->selectedCliente, $this->activar_trabajo);
+
+        $this->trabajo_cantidad_activos = Pedido::cantidadActivos($this->selectedCliente, true);
+        $this->trabajo_cantidad_desactivos = Pedido::cantidadActivos($this->selectedCliente, false);
+
+        $this->reset('selectedArticulo', 'btnDesactivar');
+    }
+
+    public function queryArticulosOT($id, $value) {
         $this->articulos_ot = Pedido::query()
-        ->where('cliente_id', $id)
-        ->where('trabajo_activo', true)
-        ->with('material:id,nombre','color:id,nombre','bolsa:id,nombre','tratado:id,nombre','corte:id,nombre')
-        // ->select('id','fecha_pedido','trabajo_nombre','ancho','largo','espesor','bolsa_largo_fuelle','material_id','color_id','bolsa_id','tratado_id', 'corte_id','trabajo_activo','estado_id','estado_nombre')
-        ->select('id','fecha_pedido','trabajo_nombre','ancho','largo','espesor','bolsa_largo_fuelle','material_id','color_id','bolsa_id','tratado_id', 'corte_id','trabajo_activo')
-        ->orderBy('fecha_pedido', 'asc')
-        ->get();
+            ->where('cliente_id', $id)
+            ->where('trabajo_activo', $value)
+            ->with('material:id,nombre','color:id,nombre','bolsa:id,nombre','tratado:id,nombre','corte:id,nombre')
+            // ->select('id','fecha_pedido','trabajo_nombre','ancho','largo','espesor','bolsa_largo_fuelle','material_id','color_id','bolsa_id','tratado_id', 'corte_id','trabajo_activo','estado_id','estado_nombre')
+            // ->select('id','fecha_pedido','trabajo_nombre','ancho','largo','espesor','bolsa_largo_fuelle','material_id','color_id','bolsa_id','tratado_id', 'corte_id','trabajo_activo')
+            ->select('id','fecha_pedido','trabajo_nombre','ancho','largo','espesor','bolsa_largo_fuelle','material_id','color_id','bolsa_id','tratado_id', 'corte_id','trabajo_activo')
+            ->orderBy('fecha_pedido', 'asc')
+            ->get();
     }
 
     public function grabarOT() {
-
-        // Con esto controlaba si FECHA_ENTREGA > FECHA_PEDIDO ahora lo hago desde las reglas de validacion
-        // if($this->fecha_pedido > $this->fecha_entrega) {
-        //     // dd('mostrar alert');
-        //     $this->modal_width = 'sm';
-        //     $this->modal_title = "PEDIDOS";
-        //     $this->modal_content = 'La fecha de entrega no puede ser menor a la fecha del pedido.';
-        //     $this->dispatchBrowserEvent('show-alert-modal');
-        //     return false;
-        // }
-
-        if($this->pedido_id == null)      // Es un ALTA
+        if($this->action == 'create')      // Es un ALTA
         {
             $this->estado_id = $this->estado_cargada;
             $this->estado_nombre = $this->estado_cargada_nombre;
-            // $this->estado_fecha = $this->fecha_pedido;
-            $this->estado_fecha = now();
+            $this->estado_fecha = now()->format('Y-m-d H:i:s');
         }
+        // $this->validate(
+        //     [
+        //         'reclamo_detalle' => 'required|string|max:2000',
+        //     ],
+        //     [
+        //         'reclamo_detalle' => [
+        //             'required' => 'El Reclamo no puede quedar vacio.',
+        //             'max' => 'Puede ingresar hasta 2 caracteres.',
+        //         ],
+        //     ],
+        //     [
+        //         'reclamo_detalle' => 'Detalle del reclamo',
+        //     ]
+        // );
+        
+        // $this->validate(
+        //     [
+        //         'fecha_pedido' => 'required',
+        //         'fecha_entrega' => 'after_or_equal:fecha_pedido' ,
+        //         'selectedCliente' => 'required',
+        //         // 'trabajo_nombre' => 'required|between:1,100',
+        //         'trabajo_nombre' => 'required',
+        //         // 'ancho' => 'required|numeric|between:1,99999',
+        //         'ancho' => 'required',
+        //         'largo' => 'required|numeric|between:1,99999',
+        //         'espesor' => 'required|numeric|between:1,99999',
+        //         'selectedColor' => 'required',
+        //         'selectedMaterial' => 'required|numeric|between:1,999',
+        //         'selectedBolsa' => 'required|numeric|between:1,999',
+        //         'selectedTratado' => 'required|numeric|between:1,999',
+        //         'selectedCorte' => 'required|numeric|between:1,999',
+        //         // 'cantidad_bolsas' => 'required|numeric|between:1,9999999',
+        //         'cantidad_bolsas' => 'required',
+        //         'bolsa_largo_fuelle' => 'numeric|between:1,99999',
+        //         'precio_unitario' => 'numeric',
+        //         'observaciones' => 'string|nullable|max:5000',
+        //         'observaciones_extrusion' => 'string|nullable|max:5000',
+        //         'observaciones_impresion' => 'string|nullable|max:5000',
+        //         'observaciones_corte' => 'string|nullable|max:5000',
+        //     ],
+        //     [
+        //         'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
+        //         'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+        //         'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
+        //         'cantidad_bolsas.required' => 'Debe ingresar la Cantidad de Bolsas',
+        //         'trabajo_nombre.required' => 'Debe ingresar un valor',
+        //         'ancho' => 'Debe ingresar un valor',
+        //         'largo' => 'Debe ingresar un valor',
+        //         'espesor' => 'Debe ingresar un valor',
+        //         'selectedColor.required' => 'Debe ingresar un valor',
+        //         'selectedMaterial.required' => 'Debe ingresar un valor',
+        //         'selectedBolsa.required' => 'Debe ingresar un valor',
+        //         'selectedTratado.required' => 'Debe ingresar un valor',
+        //         'selectedCorte.required' => 'Debe ingresar un valor',
+        //         'precio_unitario.numeric' => 'Debe ingresar valor numerico',
 
+        //     ],
+        //     [
+        //         'fecha_pedido' => 'Fecha del Pedido',
+        //         'fecha_entrega' => 'Fecha de Entrega',
+        //         'selectedCliente' => 'CLIENTE',
+        //         'selectedColor' => 'COLOR',
+        //         'trabajo_nombre' => 'Nombre Trabajo',
+        //         'ancho' => 'Ancho',
+        //         'largo' => 'Largo',
+        //         'espesor' => 'Espesor',
+        //         'ancho' => 'Ancho',
+        //         'precio_unitario' => 'Precio Unitario',
+        //         'cantidad_bolsas' => 'Cantidad de Bolsas',
+        //         'observaciones' => 'Observaciones',
+        //     ]
+        // );
         $this->validate();
 
         $fecha = now()->format('Y-m-d H:i:s');
 
         DB::beginTransaction();
+
         try {
-            Pedido::updateOrCreate(['id' => $this->pedido_id],
+            $aux = Pedido::updateOrCreate(['id' => $this->pedido_id],
             [
                 'numero_ot' => $this->numero_ot,
                 'numero_ot_mensual' => $this->numero_ot_mensual,
@@ -397,11 +600,21 @@ class PedidoUpdate extends Component
                 'ancho' => $this->ancho,
                 'largo' => $this->largo,
                 'espesor' => $this->espesor,
+                'densidad_id' => $this->selectedDensidad,
+                'densidad_nombre' => $this->densidad_nombre,
+                'densidad_pesoespecifico' => $this->densidad_pesoespecifico,
                 'material_id' => $this->selectedMaterial,
                 'material_nombre' => $this->material_nombre,
-                'material_pesoespecifico' => $this->material_pesoespecifico,
                 'color_id' => $this->selectedColor,
                 'color_nombre' => $this->color_nombre,
+                'color_id_1' => $this->selectedColor1,
+                'color_nombre_1' => $this->color_nombre_1,
+                'color_id_2' => $this->selectedColor2,
+                'color_nombre_2' => $this->color_nombre_2,
+                'color_id_3' => $this->selectedColor3,
+                'color_nombre_3' => $this->color_nombre_3,
+                'color_id_4' => $this->selectedColor4,
+                'color_nombre_4' => $this->color_nombre_4,
                 'bolsa_id' => $this->selectedBolsa,
                 'bolsa_nombre' => $this->bolsa_nombre,
                 'bolsa_fuelle' => $this->bolsa_fuelle,
@@ -411,24 +624,30 @@ class PedidoUpdate extends Component
                 'cantidad_bolsas' => $this->cantidad_bolsas,
                 'corte_id' => $this->selectedCorte,
                 'corte_nombre' => $this->corte_nombre,
-                'metros' => $this->metros,
-                'peso' => $this->peso,
+                'metros' => round($this->metros,2),
+                'peso' => round($this->peso,2),
                 'precio_unitario' => $this->precio_unitario,
                 'precio_total' => $this->precio_total,
                 'observaciones' => $this->observaciones,
-                'trabajo_activo' => $this->trabajo_activo,
+                'observaciones_extrusion' => $this->observaciones_extrusion,
+                'observaciones_impresion' => $this->observaciones_impresion,
+                'observaciones_corte' => $this->observaciones_corte,
+                'trabajo_activo' => true,
             ]);
 
             // Si es un ALTA se deberia obtener el pedido_id del ultimo registro agregado a la tabla PEDIDOS
             // Y de paso, esto solo se deberia ejecutar solo si es un ALTA
-            EstadoPedido::Create([
-                'pedido_id' => $this->pedido_id,
-                'estado_id' => $this->estado_cargada,
-                'fecha_inicio' => $fecha,
-                'fecha_final' => $fecha,
-                'observaciones' => substr($this->estado_observaciones,0,1000)
-            ]);
-         
+            // Tambien se podria preguntar por $this->action
+            if ($aux->wasRecentlyCreated) {
+                EstadoPedido::Create([
+                    'pedido_id' => $aux->id,
+                    'estado_id' => $this->estado_id,
+                    'fecha_inicio' => $this->estado_fecha,
+                    'fecha_final' => $this->estado_fecha,
+                    'observaciones' => 'OT CARGADA'
+                ]);
+            }
+
             DB::commit();
 
             // $this->color_status = "danger";
@@ -436,7 +655,10 @@ class PedidoUpdate extends Component
 
         } catch (Throwable $e) {
 
+            // dd($e);
+
             DB::rollBack();
+            
             // $this->color_status = "danger";
             // $msg = "Se ha producido un error. No se pudo generar la OT. Revise los datos y vuelvalo a intentar.";
 
@@ -461,7 +683,8 @@ class PedidoUpdate extends Component
         $this->largo = $reg->largo;
         $this->espesor = $reg->espesor;
         $this->selectedMaterial = $reg->material_id;
-        $this->material_pesoespecifico = $reg->material_pesoespecifico;
+        $this->selectedDensidad = $reg->densidad_id;
+        $this->densidad_pesoespecifico = $reg->densidad_pesoespecifico;
         $this->selectedColor = $reg->color_id;
         $this->selectedBolsa = $reg->bolsa_id;
         $this->bolsa_largo_fuelle = $reg->bolsa_largo_fuelle;
@@ -473,24 +696,277 @@ class PedidoUpdate extends Component
         $this->emitSelf('updateTratado',$this->selectedTratado);
         $this->emitSelf('updateTipoBolsa',$this->selectedBolsa);
 
-
         $this->reset('articulos_ot','selectedArticulo', 'btnDesactivar');
 
-    }
-
-    public function desactivarTrabajo() {
-
-        Pedido::where('id',$this->selectedArticulo)
-             ->update(['trabajo_activo' => false]);
-        
-        $this->queryArticulosOT($this->selectedCliente);
-
-        $this->reset('selectedArticulo', 'btnDesactivar');
     }
 
     public function cancelModal() {
 
         $this->dispatchBrowserEvent('close-modal');
         $this->reset('articulos_ot','selectedArticulo', 'btnDesactivar');
+
+        // $this->resetErrorBag();
+        // $this->resetValidation();
     }
+
+    
+
+    public function cancelModalCliente() {
+
+        $this->reset(
+            'cliente_razonsocial',
+            'cliente_cuit',
+            'cliente_telefono1',
+            'cliente_correo',
+            'cliente_calle_nombre',
+            'cliente_calle_numero',
+            'cliente_codigo_postal',
+            'cliente_barrio_nombre',
+            'cliente_localidad_nombre',
+        );
+
+        // $this->resetErrorBag();
+        // $this->resetValidation();
+
+        $this->dispatchBrowserEvent('close-modal');
+
+    }
+
+    public function clienteModal() {
+        
+        $this->modal_title = "NUEVO CLIENTE";
+        $this->modal_width = 'lg';
+
+        // $this->cancelModal();
+        $this->reset(
+            'cliente_razonsocial',
+            'cliente_cuit',
+            'cliente_telefono1',
+            'cliente_correo',
+            'cliente_calle_nombre',
+            'cliente_calle_numero',
+            'cliente_codigo_postal',
+            'cliente_barrio_nombre',
+            'cliente_localidad_nombre',
+        );
+
+        $this->dispatchBrowserEvent('show-cliente-modal');
+    }
+
+    public function grabarCliente() {
+        
+        // $this->validate([
+        //     'cliente_razonsocial' => 'nullable|required|string|between:3,100',
+        //     'cliente_cuit' => 'required|digits_between:10,11',
+        //     'cliente_telefono1' => 'required|string|between:5,30',
+        //     'cliente_correo' => 'required|email|max:100|unique:clientes,correo',
+        //     'cliente_calle_nombre' => 'nullable|string|between:3,100',
+        //     'cliente_calle_numero' => 'nullable|digits_between:1,5',
+        //     'cliente_codigo_postal' => 'nullable|alpha_num|between:4,20',
+        //     'cliente_barrio_nombre' => 'nullable|string|between:3,100',
+        //     'cliente_localidad_nombre' => 'nullable|string|between:3,100',
+        // ]);
+
+        $db = Cliente::Create(
+        [
+            'razonsocial'=> $this->cliente_razonsocial,
+            'cuit' => $this->cliente_cuit,
+            'telefono1' => $this->cliente_telefono1,
+            'correo' => $this->cliente_correo,
+            'calle_nombre' => $this->cliente_calle_nombre,
+            'calle_numero' => $this->cliente_calle_numero,
+            'codigo_postal' => $this->cliente_codigo_postal,
+            'barrio_nombre' => $this->cliente_barrio_nombre,
+            'localidad_nombre' => $this->cliente_localidad_nombre,
+        ]);
+
+        $this->clientes = Cliente::select('id','razonsocial')
+            ->orderBy('razonsocial', 'asc')
+            ->get();
+
+        $this->selectedCliente = $db->id;
+        $this->cliente_nombre = $db->razonsocial;
+
+        $this->cancelModalCliente();
+
+        // $this->dispatchBrowserEvent('close-modal');
+    }
+
+    public function cancelModalColor() {
+
+        $this->reset(
+            'color_nuevo',
+        );
+
+        // $this->resetErrorBag();
+        // $this->resetValidation();
+
+        $this->dispatchBrowserEvent('close-modal');
+
+    }
+
+    public function colorModal() {
+        
+        $this->modal_title = "NUEVO COLOR";
+        $this->modal_width = 'md';
+
+        $this->cancelModalColor();
+        // $this->reset(
+        //     'color_nuevo',
+        // );
+
+        $this->dispatchBrowserEvent('show-color-modal');
+    }
+
+    public function grabarColor() {
+        
+        // $this->validate([
+        //     'color_nuevo' => 'nullable|required|string|between:3,100',
+        // ]);
+
+        $db = Color::Create(
+        [
+            'nombre'=> $this->color_nuevo,
+        ]);
+
+        $this->colores = Color::select('*')
+            ->orderBy('nombre', 'asc')
+            ->get();
+
+        $this->selectedColor = $db->id;
+
+        $this->cancelModalColor();
+    }
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
+    protected function rules() {
+        return [
+                'fecha_pedido' => 'required',
+                'fecha_entrega' => 'after_or_equal:fecha_pedido' ,
+                'selectedCliente' => 'required',
+                'cantidad_bolsas' => 'required|numeric|between:1,99999',
+                'trabajo_nombre' => 'string|required|max:200',
+                'ancho' => 'required|numeric|between:1,99999',
+                'largo' => 'required|numeric|between:1,99999',
+                'espesor' => 'required|numeric|between:1,99999',
+                'selectedColor' => 'required',
+                'selectedMaterial' => 'required',
+                'selectedBolsa' => 'required',
+                'selectedTratado' => 'required',
+                'selectedCorte' => 'required',
+                'bolsa_largo_fuelle' => 'numeric|between:1,99999',
+                'precio_unitario' => 'numeric|nullable|between:1,999999',
+                'observaciones' => 'string|nullable|max:500',
+                'observaciones_extrusion' => 'string|nullable|max:500',
+                'observaciones_impresion' => 'string|nullable|max:500',
+                'observaciones_corte' => 'string|nullable|max:500',
+        ];
+    }
+
+    protected $messages = [
+        'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
+        'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+        'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
+        'cantidad_bolsas' => [
+            'required' => 'Debe ingresar un número',
+            'numeric' => 'Debe ingresar un valor numérico',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+            // 'max' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'trabajo_nombre' => [
+            'required' => 'Debe ingresar un valor',
+            'max' => 'Debe ingresar 100 caracteres como máximo',
+        ],
+        // 'trabajo_nombre.required' => 'Debe ingresar un valor',
+        // 'ancho' => 'Debe ingresar un valor',
+        // 'largo' => 'Debe ingresar un valor',
+        // 'espesor' => 'Debe ingresar un valor',
+        'ancho' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'largo' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'espesor' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+
+        'selectedColor.required' => 'Debe ingresar un valor',
+        'selectedMaterial.required' => 'Debe ingresar un valor',
+        'selectedBolsa.required' => 'Debe ingresar un valor',
+        'selectedTratado.required' => 'Debe ingresar un valor',
+        'selectedCorte.required' => 'Debe ingresar un valor',
+        'precio_unitario.numeric' => 'Debe ingresar valor numerico',
+        'observaciones.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_extrusion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_impresion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_corte.max' => 'Debe ingresar un máximo de 2000 caracteres',
+    //     // 'numero_ot' => [
+    //     //     'required' => 'Debe ingresar el Nro. de la OT.',
+    //     //     'min' => 'El Nro. de la OT debe ser mayor a 0 (cero)',
+    //     //     'numeric' => 'INGRESE UN VALOR NUMERICO',
+    //     // ],
+    //     'selectedCliente' => [
+    //         'required' => 'Debe seleccionar un CLIENTE.',
+    //     ],
+    //     // 'cliente_razonsocial' => [
+    //     //     'required' => 'Debe ingresar la :attribute',
+    //     // ],
+    //     // 'cliente_correo' => [
+    //     //     'required' => 'Debe ingresar :attribute',
+    //     //     'unique' => 'El Correo ingresado ya existe.'
+    //     // ],
+    //     'trabajo_nomnbre.required' => 'Debe ingresar el Nombre del Trabajo',
+    //     'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+    //     'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
+    //     // 'invitation.email.unique.invitations' => 'The email has already been invited.',
+    //     // 'invitation.email.unique.users' => 'An account with this email has already been registered.',
+    //     // 'text.min' => 'Keep typing...'
+    ];
+
+    protected $validationAttributes = [
+        'fecha_pedido' => 'Fecha del Pedido',
+        'fecha_entrega' => 'Fecha de Entrega',
+        'selectedCliente' => 'CLIENTE',
+        'selectedColor' => 'COLOR',
+        'trabajo_nombre' => 'Nombre Trabajo',
+        'ancho' => 'Ancho',
+        'largo' => 'Largo',
+        'espesor' => 'Espesor',
+        'ancho' => 'Ancho',
+        'precio_unitario' => 'Precio Unitario',
+        'cantidad_bolsas' => 'Cantidad de Bolsas',
+        'observaciones' => 'Observaciones',
+
+    //     'fecha_pedido' => 'Fecha del Pedido',
+    //     'fecha_entrega' => 'Fecha de Entrega',
+    //     'selectedCliente' => 'CLIENTE',
+    //     'selectedColor' => 'COLOR',
+    //     'trabajo_nombre' => 'Nombre del Trabajo',
+    //     'ancho' => 'Ancho',
+    //     'largo' => 'Largo',
+    //     'espesor' => 'Espesor',
+    //     'ancho' => 'Ancho',
+    //     'precio_unitario' => 'Precio Unitario',
+    //     'cantidad_bolsas' => 'Cantidad de Bolsas',
+    //     'observaciones' => 'Observaciones',
+    //     // Atributos del Cliente
+    //     'cliente_razonsocial' => 'Razón Social',
+    //     'cliente_cuit' => 'CUIT',
+    //     'cliente_telefono1' => 'Teléfono',
+    //     'cliente_correo' => 'Correo',
+    //     'cliente_calle_nombre' => 'Calle',
+    //     'cliente_calle_numero' => 'Nro.',
+    //     'cliente_codigo_postal' => 'Código Postal',
+    //     'cliente_barrio_nombre' => 'Barrio',
+    //     'cliente_localidad_nombre' => 'Localidad',
+    ];
+
 }

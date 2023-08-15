@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('colores', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre',80)->unique();
+            $table->string('nombre',100)->unique();
+            $table->smallInteger('orden')->nullable()->default('1');       // Orden para mostrar los datos
             // $table->timestamps();
         });
     }

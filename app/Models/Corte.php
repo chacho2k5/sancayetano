@@ -14,6 +14,7 @@ class Corte extends Model
 
     protected $fillable = [
         'nombre',
+        'orden'
     ];
 
     public function scopeNombre($query, $id)

@@ -6163,7 +6163,7 @@ table.mytable tbody td {
   --bs-body-font-family: var(--bs-font-sans-serif);
   --bs-body-font-size: 0.9rem;
   --bs-body-font-weight: 400;
-  --bs-body-line-height: 1.6;
+  --bs-body-line-height: 1.2;
   --bs-body-color: #212529;
   --bs-body-bg: #f8fafc;
   --bs-border-width: 1px;
@@ -8368,7 +8368,7 @@ textarea.form-control-lg {
 .form-check-input {
   width: 1em;
   height: 1em;
-  margin-top: 0.3em;
+  margin-top: 0.1em;
   vertical-align: top;
   background-color: #fff;
   background-repeat: no-repeat;
@@ -10745,7 +10745,7 @@ textarea.form-control-lg {
 
 .pagination {
   --bs-pagination-padding-x: 0.75rem;
-  --bs-pagination-padding-y: 0.375rem;
+  --bs-pagination-padding-y: 0.1rem;
   --bs-pagination-font-size: 1rem;
   --bs-pagination-color: var(--bs-link-color);
   --bs-pagination-bg: #fff;
@@ -10825,14 +10825,14 @@ textarea.form-control-lg {
 
 .pagination-lg {
   --bs-pagination-padding-x: 1.5rem;
-  --bs-pagination-padding-y: 0.75rem;
+  --bs-pagination-padding-y: 0.1rem;
   --bs-pagination-font-size: 1.25rem;
   --bs-pagination-border-radius: 0.5rem;
 }
 
 .pagination-sm {
   --bs-pagination-padding-x: 0.5rem;
-  --bs-pagination-padding-y: 0.25rem;
+  --bs-pagination-padding-y: 0.1rem;
   --bs-pagination-font-size: 0.875rem;
   --bs-pagination-border-radius: 0.25rem;
 }
@@ -11868,7 +11868,7 @@ textarea.form-control-lg {
   font-family: var(--bs-font-sans-serif);
   font-style: normal;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.2;
   text-align: left;
   text-align: start;
   text-decoration: none;
@@ -11978,7 +11978,7 @@ textarea.form-control-lg {
   font-family: var(--bs-font-sans-serif);
   font-style: normal;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.2;
   text-align: left;
   text-align: start;
   text-decoration: none;

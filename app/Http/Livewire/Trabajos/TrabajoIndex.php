@@ -53,8 +53,8 @@ class TrabajoIndex extends Component
     public $estado_en_proceso = 3;
     public $estado_terminada = 4;
     public $estado_facturado = 5;
-    public $estado_despachada = 6;
-    public $estado_entregada = 7;
+    public $estado_despachado = 6;
+    public $estado_entregado = 7;
     public $estado_anulada = 8;
 
     // Variables SELECTs
@@ -87,12 +87,20 @@ class TrabajoIndex extends Component
     public $trabajo_nombre;
     public $cantidad_bolsas;
     public $cantidad_bolsas_trabajo;
-    public $precio_unitario;
-    public $iva;
-    public $precio_iva;
-    public $precio_total;
+
     public $observaciones;
     public $bultos;
+
+    public $precio_unitario;
+    public $precio_subtotal;
+    // public $precio_iva;
+    public $importe_iva;
+    public $precio_total;
+
+    public $setup;    // iva y demas
+    public $selectedIVA;
+    public $iva;
+    public $iva1, $iva2;
 
     protected $listeners = ['borrarReclamo'];
 
@@ -126,9 +134,14 @@ class TrabajoIndex extends Component
         $this->selectedRow = null;
         $this->reclamo = false;
 
-        $aux = Setup::select('iva1')->first();
-        $this->iva = $aux->iva1;
-        // dd($this->iva);
+        // IVA
+        $this->setup = Setup::select('iva1', 'iva2')->first();
+        $this->iva1 = $this->setup->iva1;
+        $this->iva2 = $this->setup->iva2;
+        $this->selectedIVA = 0;
+
+        // dd($this->selectedIVA);
+
         $this->meses = Mes::select('id','nombre')
                             ->orderBy('id', 'asc')
                             ->get();
@@ -209,19 +222,23 @@ class TrabajoIndex extends Component
         // }
     }
 
-    public function updatingPrecioUnitario($value) {
-        if($value <> 0) {
-            // $this->precio_iva = number_format($value * .21,2);
-            // $this->precio_total = number_format((int) $this->precio_unitario + (int) $this->precio_iva,2);
-            // $this->precio_iva = number_format($value + ($value / 1.21),2);
-            // $this->precio_total = number_format((double) $this->precio_unitario + (double) $this->precio_iva,2);
-            $this->precio_iva = $value * ($this->iva / 100);
-            $this->precio_total = $value + $this->precio_iva;
-        } else {
-            $this->reset(['precio_unitario','precio_iva','precio_total']);
-        }
-        // $this->calcularMetros();
-        // $this->calcularPeso();
+    public function calcularTotales() {
+        $this->precio_subtotal = $this->precio_unitario * $this->cantidad_bolsas_trabajo;
+        $this->importe_iva = $this->precio_subtotal * ($this->selectedIVA / 100);
+        $this->precio_total = $this->precio_subtotal + $this->importe_iva;
+    }
+    
+    public function updatedCantidadBolsasTrabajo($value) {
+        $this->calcularTotales();
+    }
+
+    public function updatedSelectedIVA($value) {
+        // dd($value);
+        $this->calcularTotales();
+    }
+
+    public function updatedPrecioUnitario($value) {
+        $this->calcularTotales();
     }
 
     public function validarEdicion($value) {
@@ -237,9 +254,14 @@ class TrabajoIndex extends Component
             $msg = 'El Trabajo ya se facturo. No se puede editar y/o borrar.';
         }
 
-        if(($value=='update' || $value=='reclamo' || $value=='estado') && $this->selectedRow && $this->estado_id > $this->estado_facturado) {
+        if(($value=='update' || $value=='reclamo') && $this->selectedRow && $this->estado_id > $this->estado_facturado) {
             $msg = 'El Trabajo ya se facturo y despacho. No se puede editar y/o borrar.';
         }
+
+        if(($value=='estado') && $this->selectedRow && $this->estado_id >= $this->estado_entregado) {
+            $msg = 'El Trabajo ya se facturo y despacho y ebntrego. No se puede editar y/o borrar.';
+        }
+
 
         if($msg) {
             $result = false;
@@ -280,13 +302,16 @@ class TrabajoIndex extends Component
 
     public function trabajoModal() {
         
+        $this->resetModalTrabajo();
+
         $this->modal_title = "ACTUALIZAR TRABAJO";
-        $this->modal_width = 'md';
+        $this->modal_width = 'lg';
 
         $reg = Trabajo::select('*')
             ->where('id', $this->trabajo_id)
             ->first();
 
+            
         if($reg) {
             $this->numero_ot = $reg->numero_ot;
             // $this->fecha_pedido = date('Y-m-d', strtotime($reg->fecha_pedido));
@@ -294,13 +319,15 @@ class TrabajoIndex extends Component
             // $this->cliente_nombre = $reg->razonsocial;
             $this->trabajo_nombre = $reg->trabajo_nombre;
             $this->cantidad_bolsas = $reg->cantidad_bolsas;
-            $this->cantidad_bolsas_trabajo = $reg->cantidad_bolsas;
+            $this->cantidad_bolsas_trabajo = $reg->cantidad_bolsas;     //Cargo las bolsas "teoricas" q se cargaron en el Pedido, dpes hay q ver si las dejan igual en el TRABAJO
             $this->precio_unitario = $reg->precio_unitario;
-            $this->iva = $this->iva;        // Se obtiene del valor cargado en la tabla SETUP
-            $this->precio_iva = $reg->precio_iva;
-            $this->precio_total = $reg->precio_total;
+            $this->selectedIVA = $reg->iva;        // Se obtiene del valor cargado en la tabla SETUP
+            $this->precio_subtotal = $reg->precio_subtotal;
+            $this->importe_iva = $reg->importe_iva;
+            $this->precio_total = $reg->precio_total; 
             $this->bultos = $reg->bultos;
             $this->observaciones = $reg->observaciones;
+            // dd($this->selectedIVA . ' - ' . $reg->iva);
         }
 
         $this->dispatchBrowserEvent('show-trabajo-modal');
@@ -320,8 +347,9 @@ class TrabajoIndex extends Component
                         'cantidad_bolsas_trabajo' => $this->cantidad_bolsas_trabajo,
                         'bultos' => $this->bultos,
                         'precio_unitario' => $this->precio_unitario,
-                        'iva' => $this->iva,
-                        'precio_iva' => $this->precio_iva,
+                        'iva' => $this->selectedIVA,
+                        'precio_subtotal' => $this->precio_subtotal,
+                        'importe_iva' => $this->importe_iva,
                         'precio_total' => $this->precio_total,
                         'observaciones' => $this->observaciones,
                     ]);
@@ -333,6 +361,8 @@ class TrabajoIndex extends Component
 
             $this->color_status = "success";
             $msg = "Los datos se grabaron correctamente";
+
+            $this->resetModalTrabajo();
 
         } catch (Throwable $e) {
 
@@ -357,7 +387,7 @@ class TrabajoIndex extends Component
             $reg = Trabajo::select('*')
                 ->where('id', $this->trabajo_id)
                 ->first();
-            $aux = $reg->precio_unitario * $reg->precio_iva * $reg->precio_total;
+            $aux = $reg->precio_unitario * $reg->precio_subtotal;
             if($aux == 0) {
                 $this->modal_width = 'sm';
                 $this->modal_title = "TRABAJOS";
@@ -493,6 +523,9 @@ class TrabajoIndex extends Component
     //     $this->reset('trabajo_id', 'selectedRow', 'estado_id');
     // }
 
+    public function resetModalTrabajo() {
+        $this->reset('cantidad_bolsas_trabajo', 'bultos', 'selectedIVA', 'precio_unitario', 'precio_subtotal', 'importe_iva', 'precio_total', 'observaciones');
+    }
     
     public function cancelModal() {
 

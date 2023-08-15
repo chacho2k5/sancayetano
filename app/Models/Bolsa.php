@@ -15,6 +15,7 @@ class Bolsa extends Model
     protected $fillable = [
         'nombre',
         'fuelle',
+        'orden'
     ];
 
     public function scopeNombre($query, $id)

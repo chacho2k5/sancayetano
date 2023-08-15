@@ -280,31 +280,6 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
-        // 'selectedcliente' => [
-        //     'required' => 'Debe seleccionar un CLIENTE.',
-        // ],
-        // 'razonsocial' => [
-        //     'required' => 'Debe ingresar la :attribute.',
-        // ],
-        // 'correo' => [
-        //     'required' => 'Debe ingresar el :attribute.',
-        //     'email' => 'Dirección de correo no valida.',
-        //     'unique' => 'Dirección de correo existente.',
-        // ],
-        // 'numero' => [
-        //     'required' => 'Debe ingresar el :attribute.',
-        //     'numeric' => 'El :attribute de ser un valor numérico.',
-        // ],
-        // 'numero_ot' => [
-        //     'required' => 'Debe ingresar el Nro. de la OT.',
-        //     'min' => 'El Nro. de la OT debe ser mayor a 0 (cero)',
-        //     'numeric' => 'INGRESE UN VALOR NUMERICO',
-        // ],
-        // 'retira' => [
-        //     'required' => 'Debe ingresar la cantidad de prendas a retirar.',
-        //     'numeric' => 'El campo :attribute de ser un valor numérico.',
-        // ],
-
     ],
 
     /*

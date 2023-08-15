@@ -3,25 +3,43 @@
             <h5>{{ $modal_title }}</h5>
             <h6>{{ 'Nro. OT: ' . $numero_ot . ' - Trabajo: ' . $trabajo_nombre }}</h6>
         </x-slot> 
-        <x-slot name="content"> 
-                <div class="mt-2 mb-4 row g-3">
+        <x-slot name="content">
+                <div class="mt-2 mb-3 row g-3"> 
                     <div class="col-md-3">
                         {{-- <x-zform-input wire:model='cantidad_bolsas_trabajo' name="cantidad_bolsas_trabajo" label="Cant. Bolsas Trabajo - Cant. Pedido ({{ $cantidad_bolsas }})" placeholder='label' /> --}}
-                        <x-zform-input wire:model='cantidad_bolsas_trabajo' name="cantidad_bolsas_trabajo" label="Cant. Bolsas" placeholder='label' />
+                        <x-zform-input wire:model.lazy='cantidad_bolsas_trabajo' name="cantidad_bolsas_trabajo" label="Cant. Bolsas" placeholder='label' />
                     </div>
                     <div class="col-md-3">
                         <x-zform-input wire:model='bultos' name="bultos" label="Bultos" placeholder='label' />
                     </div>
                 </div>
-                <div class="mb-3 row g-3">
-                    <div class="col-md-4">
-                    <x-zform-input wire:model='precio_unitario' name="precio_unitario" label="Precio Unitario" placeholder='label' />
+                <div class="row mb-3">
+                    <div class="form-group col-md-3">
+                        <label for="" class="col-form-label-sm">IVA</label>
+                        <select wire:model="selectedIVA" class="form-select form-select-sm @error('selectedIV A') is-invalid @enderror" title="Debe seleccionar el IVA.">
+                            <option value="0">Sin IVA</option>
+                            <option value="{{ $iva1 }}">{{ $iva1 }}</option>
+                            <option value="{{ $iva2 }}">{{ $iva2 }}</option>
+                        </select>
+                        @error('selectedColor')
+                            <span class="invalid-feedback" role="alert">
+                                <span class="text-danger">Debe seleccionar un Color</span>
+                            </span>
+                        @enderror
                     </div>
-                    <div class="col-md-4">
-                        <x-zform-input wire:model='precio_iva' name="precio_iva" label="IVA" placeholder='label' />
+                </div>
+                <div class="mb-3 row g-2">
+                    <div class="col-md-3">
+                        <x-zform-input wire:model.lazy='precio_unitario' name="precio_unitario" label="Precio Unitario" placeholder='label' />
                     </div>
-                    <div class="col-md-4">
-                        <x-zform-input wire:model='precio_total' name="precio_total" label="Precio Total" placeholder='label' />
+                    <div class="col-md-3">
+                        <x-zform-input wire:model='precio_subtotal' name="precio_subtotal" label="Subtotal" placeholder='label' disabled/>
+                    </div>
+                    <div class="col-md-2">
+                        <x-zform-input wire:model='importe_iva' name="importe_iva" label="IVA" placeholder='label' disabled/>
+                    </div>
+                    <div class="col-md-3">
+                        <x-zform-input wire:model='precio_total' name="precio_total" label="Precio Total" placeholder='label' disabled/>
                     </div>
                 </div>
                 <div class="row">

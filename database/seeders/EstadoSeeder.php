@@ -21,9 +21,9 @@ class EstadoSeeder extends Seeder
             ['orden' => '3', 'nombre' => 'PRODUCCION'],
             ['orden' => '4', 'nombre' => 'TERMINADO'],
             ['orden' => '5', 'nombre' => 'FACTURADO'],
-            ['orden' => '6', 'nombre' => 'DESPACHADO'],
-            ['orden' => '7', 'nombre' => 'ENTREGADO'],
-            ['orden' => '8', 'nombre' => 'ANULADO'],
+            // ['orden' => '6', 'nombre' => 'DESPACHADO'],
+            ['orden' => '6', 'nombre' => 'ENTREGADO'],
+            ['orden' => '7', 'nombre' => 'ANULADO'],
         ];
 
         foreach ($estados as $estado) {

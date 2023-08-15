@@ -30,6 +30,14 @@ class Trabajo extends Model
         'material_pesoespecifico',
         'color_id',
         'color_nombre',
+        'color_id_1',
+        'color_nombre_1',
+        'color_id_2',
+        'color_nombre_2',
+        'color_id_3',
+        'color_nombre_3',
+        'color_id_4',
+        'color_nombre_4',
         'bolsa_id',
         'bolsa_nombre',
         'bolsa_fuelle',
@@ -47,6 +55,9 @@ class Trabajo extends Model
         'reclamo',
         'reclamo_detalle',
         'observaciones',
+        'observaciones_extrusion',
+        'observaciones_impresion',
+        'observaciones_corte',
     ];
 
     public function cliente() {

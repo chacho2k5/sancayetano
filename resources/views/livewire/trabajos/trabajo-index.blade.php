@@ -4,7 +4,7 @@
             {{-- <div class="mt-2 mb-4 container-fluid"> --}}
             <div class="col d-flex">
                 <h5>TRABAJOS</h5>
-            </div>
+            </div> 
             @if (session('status'))
                 <div class="col-md-auto me-3">
                     <div class="py-0 m-0 ps-0 pe-3 alert alert-{{ $color_status }}" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)">
@@ -90,11 +90,10 @@
                 </div>
             </div>
 
-        <div class="table-responsive" x-data="{indexRow: 0}">
+        <div class="container-fluid table-responsive" x-data="{indexRow: 0}">
             {{-- <table class="table table-hover table-bordered my-table"> --}}
-                
-            <table class="table table-hover table-bordered table-responsive-md text-nowrap my-table table-sticky">
-                <thead class="align-middle">
+            <table class="table table-hover text-nowrap">
+                <thead class="align-middle" style="background-color: #4082B0; color: #dee2e6;">
                     <tr>
                         {{-- <th><i class="bi bi-printer" title="Imprimir Orden Trabajo"></i></th> --}}
                         <th>E</th>
@@ -103,36 +102,36 @@
                                 FECHA TRABAJO
                                 @if ($sortField == 'fecha_pedido')
                                     @if ($sortOrden == 'asc')
-                                        <i class="float-end bi bi-chevron-up"></i>
+                                        <i class="bi bi-chevron-up"></i>
                                     @else
-                                        <i class="float-end bi bi-chevron-down"></i>
+                                        <i class="bi bi-chevron-down"></i>
                                     @endif
                                 @else
-                                    <i class="float-end bi bi-chevron-expand"></i>
+                                    <i class="bi bi-chevron-expand"></i>
                                 @endif
                         </th>
                         <th class="cursor-pointer" wire:click='order("fecha_entrega")'>
                             FECHA ENTREGA
                             @if ($sortField == 'fecha_entrega')
                                 @if ($sortOrden == 'asc')
-                                    <i class="float-end bi bi-chevron-up"></i>
+                                    <i class="bi bi-chevron-up"></i>
                                 @else
-                                    <i class="float-end bi bi-chevron-down"></i>
+                                    <i class="bi bi-chevron-down"></i>
                                 @endif
                             @else
-                                <i class="float-end bi bi-chevron-expand"></i>
+                                <i class="bi bi-chevron-expand"></i>
                             @endif
                         </th>
                         <th class="cursor-pointer" wire:click='order("razonsocial")'>
                             CLIENTE
                             @if ($sortField == 'razonsocial')
                                 @if ($sortOrden == 'asc')
-                                    <i class="float-end bi bi-chevron-up"></i>
+                                    <i class="bi bi-chevron-up"></i>
                                 @else
-                                    <i class="float-end bi bi-chevron-down"></i>
+                                    <i class="bi bi-chevron-down"></i>
                                 @endif
                             @else
-                                <i class="float-end bi bi-chevron-expand"></i>
+                                <i class="bi bi-chevron-expand"></i>
                             @endif
                         </th>
 
@@ -145,11 +144,21 @@
                         <th class="text-center">BULTOS</th>
                         <th>OBSERVACIONES</th>
                 </thead>
+
+                {{-- public $estado_cargada = 1;
+                public $estado_generada = 2;
+                public $estado_en_proceso = 3;
+                public $estado_terminada = 4;
+                public $estado_facturado = 5;
+                public $estado_despachado = 6;
+                public $estado_entregado = 7;
+                public $estado_anulada = 8; --}}
+
                 <tbody class="my-body-table">
                     @foreach ( $registros as $reg)
                         <tr id={{ $reg->id }}
                             x-on:click="selected !== {{ $reg->id }} ? selected = {{ $reg->id }} : selected = null, selectedRow = selected, trabajoId = selected, estadoId = {{ $reg->estado_id }}, reclamo = {{ $reg->reclamo }}" 
-                            :class="{'bg-success text-black':selected === {{ $reg->id }} , 'bg-danger ':{{ $reg->estado_id }} == 5, 'bg-secondary':{{ $reg->estado_id }} == 6, 'bg-warning':{{ $reg->reclamo }} && selected != {{ $reg->id }}}"
+                            :class="{'bg-success text-black':selected === {{ $reg->id }}, 'bg-danger ':{{ $reg->estado_id }} == 5 || {{ $reg->estado_id }} == 6, 'bg-secondary':{{ $reg->estado_id }} == 7, 'bg-warning':{{ $reg->reclamo }} && selected != {{ $reg->id }}}"
                             >
                             <td title="{{ $reg->estado_nombre }}">{{ substr($reg->estado_nombre,0,1) }}</td>
                             <td>{{ date('d/m/Y', strtotime($reg->fecha_pedido)) }}</td>
@@ -164,7 +173,7 @@
 
                             <td :class="{'table-secondary': {{ ($reg->cantidad_bolsas_trabajo == 0) }}}">{{ $reg->cantidad_bolsas }}</td>
                             <td>{{ $reg->precio_unitario }}</td>
-                            <td>{{ $reg->precio_iva }}</td>
+                            <td>{{ $reg->importe_iva }}</td>
                             <td>{{ $reg->precio_total }}</td>
                             <td>{{ $reg->bultos }}</td>
                             <td title="{{ $reg->observaciones }}">{{ $reg->observaciones }}</td>
@@ -189,7 +198,7 @@
         @include('livewire.trabajos.cambiar-estado')
         @include('livewire.trabajos.trabajo-update')
 
-        <x-zmodal id="imprimirModal" maxWidth="md">
+        {{-- <x-zmodal id="imprimirModal" maxWidth="md">
             <x-slot name="title">
                 <h4>{{ $modal_title }}</h4>
             </x-slot>
@@ -208,7 +217,7 @@
                     Imprimir
                 </button>
             </x-slot>
-        </x-zmodal>
+        </x-zmodal> --}}
 
         <x-zmodal id="alertModal" maxWidth="md">
             <x-slot name="title">
@@ -262,15 +271,15 @@
                 }
         });
 
-        document.addEventListener("livewire:load", function () {
-            Livewire.on('gotoPage', function (page) {
-                Livewire.emit('gotoPage', page);
-            });
+        // document.addEventListener("livewire:load", function () {
+        //     Livewire.on('gotoPage', function (page) {
+        //         Livewire.emit('gotoPage', page);
+        //     });
 
-            @if ($currentPage > 1)
-                Livewire.emit('gotoPage', {{ $currentPage }});
-            @endif
-        });
+        //     @if ($currentPage > 1)
+        //         Livewire.emit('gotoPage', {{ $currentPage }});
+        //     @endif
+        // });
     </script>
 @endpush
 

@@ -84,7 +84,7 @@ return [
     |
     */
 
-    // 'locale' => 'es',
+    'locale' => 'es',
     // 'locale' => 'es_ES.UTF-8',
     // 'locale' => 'es_RA.UTF-8',
     // 'locale' => 'es_ES.UTF-8',

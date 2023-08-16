@@ -1,7 +1,7 @@
-<div>
+<div> 
     <div class="container-fluid">
         <div x-data="{ open:false, auxId: @entangle('selectedArticulo') }" @keydown.enter.prevent="$focus.next()">
-            <form wire:submit.prevent="grabar" autocomplete="off" class="needs-validation">
+            <form wire:submit.prevent="grabarOT" autocomplete="off" class="needs-validation">
                 @csrf
                 <div class="card">
                     <div class="px-2 mx-auto align-items-center card-header row col-md-12">
@@ -21,7 +21,7 @@
                                     <i class="bi bi-arrow-left-circle-fill pe-1"></i>
                                     Cancelar
                                 </button>
-                                <button wire:click.prevent='grabarOT' class="btn btn-danger btn-sm ps-1 ms-2" tabindex="0">
+                                <button type="submit" class="btn btn-danger btn-sm ps-1 ms-2" tabindex="0">
                                     <i class="bi bi-check-circle-fill pe-1"></i>
                                     Grabar
                                 </button>

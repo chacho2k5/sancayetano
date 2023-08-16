@@ -1,4 +1,4 @@
-<x-zmodal id="clienteModal" maxWidth="{{ $modal_width }}">
+<x-zmodal id="clienteModal" maxWidth="{{ $modal_width }}"> 
     <x-slot name="title">
         <h5>{{ $modal_title }}</h5>
     </x-slot> 

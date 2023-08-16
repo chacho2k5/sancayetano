@@ -89,6 +89,15 @@ class Pedido extends Model
     //     );
     // }
 
+    public function scopeMesPedido($query, $fecha)
+    {
+        $aMes = array("ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCT","NOVIEMBRE","DICIEMBRE");
+        $mes = date('n', strtotime($fecha));
+
+        return $aMes[$mes-1];
+
+    }
+
     public function scopeGetReclamosCliente($query, $cliente)
     {
         $db = Pedido::query()

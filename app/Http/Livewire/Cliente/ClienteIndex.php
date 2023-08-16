@@ -117,8 +117,8 @@ class ClienteIndex extends Component
     public function grabar() {
         // Grabo las modificaciones y las altas
 
-       //  dd($this->registro_id);
-            $this->validate();
+        $this->validate();
+
         Cliente::updateOrCreate(['id' => $this->registro_id],
         [
             'razonsocial'=> $this->razonsocial,

@@ -22,13 +22,13 @@
                 </button> --}}
 
                 {{-- Export EXCEL --}}
-                <button wire:click="exportExcel" class="btn btn-success btn-sm" data-toggle="tooltip" title='Exportar Trabajos a Excel'>
+                {{-- <button wire:click="exportExcel" class="btn btn-success btn-sm" data-toggle="tooltip" title='Exportar Trabajos a Excel'>
                     <i class='fas fa-file-excel'></i> 
-                </button>
+                </button> --}}
                 {{-- Export PDF --}}
-                <button wire:click="exportPdf" class="btn btn-danger btn-sm me-5" data-toggle="tooltip" title='Exportar Trabajos a Pdf'>
+                {{-- <button wire:click="exportPdf" class="btn btn-danger btn-sm me-5" data-toggle="tooltip" title='Exportar Trabajos a Pdf'>
                     <i class='fas fa-file-pdf'></i>
-                </button> 
+                </button>  --}}
 
                 {{-- Cambiar Estado --}}
                 <button wire:click="updateTrabajo('estado')" class="btn btn-info btn-sm" data-toggle="tooltip" title='Cambiar Estado del Trabajo.'>

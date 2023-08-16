@@ -27,20 +27,28 @@ class OtReport extends Controller
   public $estado_despachada = 6;
   public $estado_entregada = 7;
   public $estado_anulada = 8;
+  public $mesPedido;
 
   public $pedido_id;
 
-    public function index($id = 0) {
+  public function index($id = 0) {
 
       if($id == 0) {
         return back()->with('status', 'Debe seleccionar un Pedido.');
       }
       $this->pedido_id = $id;
+
+      $aux = Pedido::select('fecha_pedido')->find($id);
+
+      $this->mesPedido = Pedido::mesPedido($aux->fecha_pedido);                
       
+      // dd($this->mesPedido);
+
       $registros = Pedido::all()->where('id',$id);
+
       $reporte = 'OT_' . $id . '.pdf';
 
-      $pdf = Pdf::loadView('reportes.ot-report', compact('registros'));
+      $pdf = Pdf::loadView('reportes.ot-report', compact('registros'), ['mes' => $this->mesPedido]);
       // return $pdf->stream($reporte);
       
       // return redirect()->away($pdf->stream($reporte));

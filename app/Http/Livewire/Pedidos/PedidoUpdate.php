@@ -14,6 +14,7 @@ use Livewire\Component;
 use App\Models\Material;
 use App\Models\EstadoPedido;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Calculation\TextData\Format;
 
 class PedidoUpdate extends Component
 {
@@ -108,6 +109,131 @@ class PedidoUpdate extends Component
     protected $listeners = [
         'updateTratado' => 'updatedselectedTratado',
         'updateTipoBolsa' => 'updatedselectedBolsa',
+    ];
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
+    protected $rules = [
+        'fecha_pedido' => 'required|date',
+        'fecha_entrega' => 'date|after_or_equal:fecha_pedido' ,
+        'selectedCliente' => 'required',
+        'cantidad_bolsas' => 'required|numeric|between:1,99999',
+        // 'trabajo_nombre' => 'required|alpha:ascii|max:200',
+        'trabajo_nombre' => 'required|string|max:200',
+        'ancho' => 'required|numeric|between:1,99999',
+        'largo' => 'required|numeric|between:1,99999',
+        'espesor' => 'required|numeric|between:1,99999',
+        'selectedColor' => 'required',
+        'selectedMaterial' => 'required',
+        'selectedBolsa' => 'required',
+        'selectedTratado' => 'required',
+        'selectedCorte' => 'required',
+        'selectedDensidad' => 'required',
+        'bolsa_largo_fuelle' => 'numeric|between:1,99999',
+        'precio_unitario' => 'numeric|nullable|between:1,999999',
+        'observaciones' => 'nullable|string|max:500',
+        'observaciones_extrusion' => 'nullable|string|max:500',
+        'observaciones_impresion' => 'nullable|string|max:500',
+        'observaciones_corte' => 'nullable|string|max:500',
+    ];
+
+    protected $messages = [
+        'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
+        'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+        'fecha_pedido.date' => 'Debe ingresar una fecha válida',
+        'fecha_entrega.date' => 'Debe ingresar una fecha válida',
+        'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
+        'cantidad_bolsas' => [
+            'required' => 'Debe ingresar un número',
+            'numeric' => 'Debe ingresar un valor numérico',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'trabajo_nombre' => [
+            'required' => 'Debe ingresar un valor',
+            'alpha_num' => 'Debe ingresar letras y números',
+            // 'string' => 'Debe ingresar solo letras',
+            'max' => 'Debe ingresar 100 caracteres como máximo',
+        ],
+        'ancho' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'largo' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'espesor' => [
+            'required' => 'Debe ingresar un numero',
+            'between' => 'Debe ingresar un valor entre 1 y 99999',
+        ],
+        'selectedColor.required' => 'Debe seleccionar un valor.',
+        'selectedMaterial.required' => 'Debe seleccionar un valor.',
+        'selectedBolsa.required' => 'Debe seleccionar un valor.',
+        'selectedTratado.required' => 'Debe seleccionar un valor.',
+        'selectedCorte.required' => 'Debe seleccionar un valor.',
+        'selectedDensidad.required' => 'Debe seleccionar un valor.',
+        'precio_unitario.numeric' => 'Debe ingresar valor numerico',
+        'observaciones.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_extrusion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_impresion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        'observaciones_corte.max' => 'Debe ingresar un máximo de 2000 caracteres',
+        // CREATE CLIENTE
+        'cliente_razonsocial' => [
+            'required' => 'Debe ingresar un valor',
+            // 'alpha' => 'Debe ingresar letras y números',
+            'string' => 'Debe ingresar letras y números',
+            'min' => 'Debe ingresar mas de 3 caracteres',
+            'max' => 'Debe ingresar 100 caracteres como máximo',
+        ],
+        'cliente_cuit' => [
+            'required' => 'Debe ingresar un valor',
+            'string' => 'Debe ingresar letras y números',
+            'max' => 'Debe ingresar hasta 13 caracteres como máximo',
+        ],
+        'cliente_telefono1' => [
+            'required' => 'Debe ingresar un valor',
+            'string' => 'Debe ingresar letras y números',
+            'max' => 'Debe ingresar hasta 20 caracteres como máximo',
+        ],
+        'cliente_correo' => [
+            'required' => 'Debe ingresar un valor',
+            'string' => 'Debe ingresar letras y números',
+            'max' => 'Debe ingresar hasta 100 caracteres como máximo',
+        ],
+
+        // 'cliente_telefono1' => 'required|string|between:5,30',
+        // 'cliente_correo' => 'required|email|max:100|unique:clientes,correo',
+        // 'cliente_calle_nombre' => 'nullable|string|between:3,100',
+        // 'cliente_calle_numero' => 'nullable|digits_between:1,5',
+        // 'cliente_codigo_postal' => 'nullable|alpha_num|between:4,20',
+        // 'cliente_barrio_nombre' => 'nullable|string|between:3,100',
+        // 'cliente_localidad_nombre' => 'nullable|string|between:3,100',
+
+        // CREATE COLOR
+        'color_nuevo' => [
+            'required' => 'Debe ingresar un valor',
+            'string' => 'Debe ingresar letras y números',
+            'min' => 'Debe ingresar mas de 3 caracteres',
+            'max' => 'Debe ingresar 100 caracteres como máximo',
+        ],
+    ];
+
+    protected $validationAttributes = [
+        'fecha_pedido' => 'Fecha del Pedido',
+        'fecha_entrega' => 'Fecha de Entrega',
+        'selectedCliente' => 'CLIENTE',
+        'selectedColor' => 'COLOR',
+        'trabajo_nombre' => 'Nombre Trabajo',
+        'ancho' => 'Ancho',
+        'largo' => 'Largo',
+        'espesor' => 'Espesor',
+        'ancho' => 'Ancho',
+        'precio_unitario' => 'Precio Unitario',
+        'cantidad_bolsas' => 'Cantidad de Bolsas',
+        'observaciones' => 'Observaciones',
     ];
 
     public function mount($action, $id) {
@@ -239,9 +365,20 @@ class PedidoUpdate extends Component
     public function updatedFechaPedido($value) {
         $aMes = array("ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC");
         $mes = date('n', strtotime($value));
-                
+        $año = date('Y', strtotime($value));
         $this->numero_ot_mensual = Pedido::ultimaOt($mes) + 1;
-        $this->numero_ot = $aMes[date('n', strtotime($value))-1] . '-' . $this->numero_ot_mensual;
+        // $this->numero_ot = $aMes[date('n', strtotime($value))-1] . '-' . $this->numero_ot_mensual;
+        $this->numero_ot = $aMes[$mes-1] . '-' . $año . '-' . $this->numero_ot_mensual;
+        // dd($this->numero_ot);
+        // $this->numero_ot = Pedido::mesPedido($value);
+        // dd(Pedido::mesPedido($value));
+
+        // date_default_timezone_set('America/Argentina/Cordoba');
+        // setlocale( LC_ALL, "Spanish_Argentina.1252" );
+        
+        // dd(date('F', strtotime($value)));
+        // dd(strtotime($value->format('Y')));
+        // dd(date('F', now()));
     }
 
     public function updatedselectedCliente($value) {
@@ -518,64 +655,8 @@ class PedidoUpdate extends Component
         //         'reclamo_detalle' => 'Detalle del reclamo',
         //     ]
         // );
-        
-        // $this->validate(
-        //     [
-        //         'fecha_pedido' => 'required',
-        //         'fecha_entrega' => 'after_or_equal:fecha_pedido' ,
-        //         'selectedCliente' => 'required',
-        //         // 'trabajo_nombre' => 'required|between:1,100',
-        //         'trabajo_nombre' => 'required',
-        //         // 'ancho' => 'required|numeric|between:1,99999',
-        //         'ancho' => 'required',
-        //         'largo' => 'required|numeric|between:1,99999',
-        //         'espesor' => 'required|numeric|between:1,99999',
-        //         'selectedColor' => 'required',
-        //         'selectedMaterial' => 'required|numeric|between:1,999',
-        //         'selectedBolsa' => 'required|numeric|between:1,999',
-        //         'selectedTratado' => 'required|numeric|between:1,999',
-        //         'selectedCorte' => 'required|numeric|between:1,999',
-        //         // 'cantidad_bolsas' => 'required|numeric|between:1,9999999',
-        //         'cantidad_bolsas' => 'required',
-        //         'bolsa_largo_fuelle' => 'numeric|between:1,99999',
-        //         'precio_unitario' => 'numeric',
-        //         'observaciones' => 'string|nullable|max:5000',
-        //         'observaciones_extrusion' => 'string|nullable|max:5000',
-        //         'observaciones_impresion' => 'string|nullable|max:5000',
-        //         'observaciones_corte' => 'string|nullable|max:5000',
-        //     ],
-        //     [
-        //         'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
-        //         'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
-        //         'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
-        //         'cantidad_bolsas.required' => 'Debe ingresar la Cantidad de Bolsas',
-        //         'trabajo_nombre.required' => 'Debe ingresar un valor',
-        //         'ancho' => 'Debe ingresar un valor',
-        //         'largo' => 'Debe ingresar un valor',
-        //         'espesor' => 'Debe ingresar un valor',
-        //         'selectedColor.required' => 'Debe ingresar un valor',
-        //         'selectedMaterial.required' => 'Debe ingresar un valor',
-        //         'selectedBolsa.required' => 'Debe ingresar un valor',
-        //         'selectedTratado.required' => 'Debe ingresar un valor',
-        //         'selectedCorte.required' => 'Debe ingresar un valor',
-        //         'precio_unitario.numeric' => 'Debe ingresar valor numerico',
+       
 
-        //     ],
-        //     [
-        //         'fecha_pedido' => 'Fecha del Pedido',
-        //         'fecha_entrega' => 'Fecha de Entrega',
-        //         'selectedCliente' => 'CLIENTE',
-        //         'selectedColor' => 'COLOR',
-        //         'trabajo_nombre' => 'Nombre Trabajo',
-        //         'ancho' => 'Ancho',
-        //         'largo' => 'Largo',
-        //         'espesor' => 'Espesor',
-        //         'ancho' => 'Ancho',
-        //         'precio_unitario' => 'Precio Unitario',
-        //         'cantidad_bolsas' => 'Cantidad de Bolsas',
-        //         'observaciones' => 'Observaciones',
-        //     ]
-        // );
         $this->validate();
 
         $fecha = now()->format('Y-m-d H:i:s');
@@ -738,6 +819,8 @@ class PedidoUpdate extends Component
         $this->modal_width = 'lg';
 
         // $this->cancelModal();
+        $this->resetErrorBag();
+
         $this->reset(
             'cliente_razonsocial',
             'cliente_cuit',
@@ -755,17 +838,17 @@ class PedidoUpdate extends Component
 
     public function grabarCliente() {
         
-        // $this->validate([
-        //     'cliente_razonsocial' => 'nullable|required|string|between:3,100',
-        //     'cliente_cuit' => 'required|digits_between:10,11',
-        //     'cliente_telefono1' => 'required|string|between:5,30',
-        //     'cliente_correo' => 'required|email|max:100|unique:clientes,correo',
-        //     'cliente_calle_nombre' => 'nullable|string|between:3,100',
-        //     'cliente_calle_numero' => 'nullable|digits_between:1,5',
-        //     'cliente_codigo_postal' => 'nullable|alpha_num|between:4,20',
-        //     'cliente_barrio_nombre' => 'nullable|string|between:3,100',
-        //     'cliente_localidad_nombre' => 'nullable|string|between:3,100',
-        // ]);
+        $this->validate([
+            'cliente_razonsocial' => 'required|string|min:3|max:100',
+            'cliente_cuit' => 'required|string|max:13',
+            'cliente_telefono1' => 'required|string|max:20',
+            'cliente_correo' => 'required|email|max:100|unique:clientes,correo',
+            // 'cliente_calle_nombre' => 'nullable|string|between:3,100',
+            // 'cliente_calle_numero' => 'nullable|digits_between:1,5',
+            // 'cliente_codigo_postal' => 'nullable|alpha_num|between:4,20',
+            // 'cliente_barrio_nombre' => 'nullable|string|between:3,100',
+            // 'cliente_localidad_nombre' => 'nullable|string|between:3,100',
+        ]);
 
         $db = Cliente::Create(
         [
@@ -798,7 +881,7 @@ class PedidoUpdate extends Component
             'color_nuevo',
         );
 
-        // $this->resetErrorBag();
+        $this->resetErrorBag();
         // $this->resetValidation();
 
         $this->dispatchBrowserEvent('close-modal');
@@ -824,6 +907,11 @@ class PedidoUpdate extends Component
         //     'color_nuevo' => 'nullable|required|string|between:3,100',
         // ]);
 
+        $this->validate([
+            'color_nuevo' => 'required|string|min:3|max:100',
+        ]);
+
+
         $db = Color::Create(
         [
             'nombre'=> $this->color_nuevo,
@@ -838,118 +926,109 @@ class PedidoUpdate extends Component
         $this->cancelModalColor();
     }
 
-    public function updated($propertyName)
-    {
-        $this->validateOnly($propertyName);
-    }
+    // public function updated($propertyName)
+    // {
+    //     $this->validateOnly($propertyName);
+    // }
 
-    protected function rules() {
-        return [
-                'fecha_pedido' => 'required',
-                'fecha_entrega' => 'after_or_equal:fecha_pedido' ,
-                'selectedCliente' => 'required',
-                'cantidad_bolsas' => 'required|numeric|between:1,99999',
-                'trabajo_nombre' => 'string|required|max:200',
-                'ancho' => 'required|numeric|between:1,99999',
-                'largo' => 'required|numeric|between:1,99999',
-                'espesor' => 'required|numeric|between:1,99999',
-                'selectedColor' => 'required',
-                'selectedMaterial' => 'required',
-                'selectedBolsa' => 'required',
-                'selectedTratado' => 'required',
-                'selectedCorte' => 'required',
-                'bolsa_largo_fuelle' => 'numeric|between:1,99999',
-                'precio_unitario' => 'numeric|nullable|between:1,999999',
-                'observaciones' => 'string|nullable|max:500',
-                'observaciones_extrusion' => 'string|nullable|max:500',
-                'observaciones_impresion' => 'string|nullable|max:500',
-                'observaciones_corte' => 'string|nullable|max:500',
-        ];
-    }
+    // protected function rules() {
+    //     return [
+    //             'fecha_pedido' => 'required|date',
+    //             'fecha_entrega' => 'date|after_or_equal:fecha_pedido' ,
+    //             'selectedCliente' => 'required',
+    //             'cantidad_bolsas' => 'required|numeric|between:1,99999',
+    //             'trabajo_nombre' => 'string|required|max:200',
+    //             'ancho' => 'required|numeric|between:1,99999',
+    //             'largo' => 'required|numeric|between:1,99999',
+    //             'espesor' => 'required|numeric|between:1,99999',
+    //             'selectedColor' => 'required',
+    //             'selectedMaterial' => 'required',
+    //             'selectedBolsa' => 'required',
+    //             'selectedTratado' => 'required',
+    //             'selectedCorte' => 'required',
+    //             'selectedDensidad' => 'required',
+    //             'bolsa_largo_fuelle' => 'numeric|between:1,99999',
+    //             'precio_unitario' => 'numeric|nullable|between:1,999999',
+    //             'observaciones' => 'string|nullable|max:500',
+    //             'observaciones_extrusion' => 'string|nullable|max:500',
+    //             'observaciones_impresion' => 'string|nullable|max:500',
+    //             'observaciones_corte' => 'string|nullable|max:500',
+    //     ];
+    // }
 
-    protected $messages = [
-        'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
-        'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
-        'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
-        'cantidad_bolsas' => [
-            'required' => 'Debe ingresar un número',
-            'numeric' => 'Debe ingresar un valor numérico',
-            'between' => 'Debe ingresar un valor entre 1 y 99999',
-            // 'max' => 'Debe ingresar un valor entre 1 y 99999',
-        ],
-        'trabajo_nombre' => [
-            'required' => 'Debe ingresar un valor',
-            'max' => 'Debe ingresar 100 caracteres como máximo',
-        ],
-        // 'trabajo_nombre.required' => 'Debe ingresar un valor',
-        // 'ancho' => 'Debe ingresar un valor',
-        // 'largo' => 'Debe ingresar un valor',
-        // 'espesor' => 'Debe ingresar un valor',
-        'ancho' => [
-            'required' => 'Debe ingresar un numero',
-            'between' => 'Debe ingresar un valor entre 1 y 99999',
-        ],
-        'largo' => [
-            'required' => 'Debe ingresar un numero',
-            'between' => 'Debe ingresar un valor entre 1 y 99999',
-        ],
-        'espesor' => [
-            'required' => 'Debe ingresar un numero',
-            'between' => 'Debe ingresar un valor entre 1 y 99999',
-        ],
-
-        'selectedColor.required' => 'Debe ingresar un valor',
-        'selectedMaterial.required' => 'Debe ingresar un valor',
-        'selectedBolsa.required' => 'Debe ingresar un valor',
-        'selectedTratado.required' => 'Debe ingresar un valor',
-        'selectedCorte.required' => 'Debe ingresar un valor',
-        'precio_unitario.numeric' => 'Debe ingresar valor numerico',
-        'observaciones.max' => 'Debe ingresar un máximo de 2000 caracteres',
-        'observaciones_extrusion.max' => 'Debe ingresar un máximo de 2000 caracteres',
-        'observaciones_impresion.max' => 'Debe ingresar un máximo de 2000 caracteres',
-        'observaciones_corte.max' => 'Debe ingresar un máximo de 2000 caracteres',
-    //     // 'numero_ot' => [
-    //     //     'required' => 'Debe ingresar el Nro. de la OT.',
-    //     //     'min' => 'El Nro. de la OT debe ser mayor a 0 (cero)',
-    //     //     'numeric' => 'INGRESE UN VALOR NUMERICO',
-    //     // ],
-    //     'selectedCliente' => [
-    //         'required' => 'Debe seleccionar un CLIENTE.',
-    //     ],
-    //     // 'cliente_razonsocial' => [
-    //     //     'required' => 'Debe ingresar la :attribute',
-    //     // ],
-    //     // 'cliente_correo' => [
-    //     //     'required' => 'Debe ingresar :attribute',
-    //     //     'unique' => 'El Correo ingresado ya existe.'
-    //     // ],
-    //     'trabajo_nomnbre.required' => 'Debe ingresar el Nombre del Trabajo',
+    // protected $messages = [
+    //     'selectedCliente.required' => 'Debe seleccionar un CLIENTE.',
     //     'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+    //     'fecha_pedido.date' => 'Debe ingresar una fecha válida',
+    //     'fecha_entrega.date' => 'Debe ingresar una fecha válida',
     //     'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
-    //     // 'invitation.email.unique.invitations' => 'The email has already been invited.',
-    //     // 'invitation.email.unique.users' => 'An account with this email has already been registered.',
-    //     // 'text.min' => 'Keep typing...'
-    ];
+    //     'cantidad_bolsas' => [
+    //         'required' => 'Debe ingresar un número',
+    //         'numeric' => 'Debe ingresar un valor numérico',
+    //         'between' => 'Debe ingresar un valor entre 1 y 99999',
+    //         // 'max' => 'Debe ingresar un valor entre 1 y 99999',
+    //     ],
+    //     'trabajo_nombre' => [
+    //         'required' => 'Debe ingresar un valor',
+    //         'max' => 'Debe ingresar 100 caracteres como máximo',
+    //     ],
+    //     // 'trabajo_nombre.required' => 'Debe ingresar un valor',
+    //     // 'ancho' => 'Debe ingresar un valor',
+    //     // 'largo' => 'Debe ingresar un valor',
+    //     // 'espesor' => 'Debe ingresar un valor',
+    //     'ancho' => [
+    //         'required' => 'Debe ingresar un numero',
+    //         'between' => 'Debe ingresar un valor entre 1 y 99999',
+    //     ],
+    //     'largo' => [
+    //         'required' => 'Debe ingresar un numero',
+    //         'between' => 'Debe ingresar un valor entre 1 y 99999',
+    //     ],
+    //     'espesor' => [
+    //         'required' => 'Debe ingresar un numero',
+    //         'between' => 'Debe ingresar un valor entre 1 y 99999',
+    //     ],
 
-    protected $validationAttributes = [
-        'fecha_pedido' => 'Fecha del Pedido',
-        'fecha_entrega' => 'Fecha de Entrega',
-        'selectedCliente' => 'CLIENTE',
-        'selectedColor' => 'COLOR',
-        'trabajo_nombre' => 'Nombre Trabajo',
-        'ancho' => 'Ancho',
-        'largo' => 'Largo',
-        'espesor' => 'Espesor',
-        'ancho' => 'Ancho',
-        'precio_unitario' => 'Precio Unitario',
-        'cantidad_bolsas' => 'Cantidad de Bolsas',
-        'observaciones' => 'Observaciones',
+    //     'selectedColor.required' => 'Debe seleccionar un valor.',
+    //     'selectedMaterial.required' => 'Debe seleccionar un valor.',
+    //     'selectedBolsa.required' => 'Debe seleccionar un valor.',
+    //     'selectedTratado.required' => 'Debe seleccionar un valor.',
+    //     'selectedCorte.required' => 'Debe seleccionar un valor.',
+    //     'selectedDensidad.required' => 'Debe seleccionar un valor.',
+    //     'precio_unitario.numeric' => 'Debe ingresar valor numerico',
+    //     'observaciones.max' => 'Debe ingresar un máximo de 2000 caracteres',
+    //     'observaciones_extrusion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+    //     'observaciones_impresion.max' => 'Debe ingresar un máximo de 2000 caracteres',
+    //     'observaciones_corte.max' => 'Debe ingresar un máximo de 2000 caracteres',
+    // //     // 'numero_ot' => [
+    // //     //     'required' => 'Debe ingresar el Nro. de la OT.',
+    // //     //     'min' => 'El Nro. de la OT debe ser mayor a 0 (cero)',
+    // //     //     'numeric' => 'INGRESE UN VALOR NUMERICO',
+    // //     // ],
+    // //     'selectedCliente' => [
+    // //         'required' => 'Debe seleccionar un CLIENTE.',
+    // //     ],
+    // //     // 'cliente_razonsocial' => [
+    // //     //     'required' => 'Debe ingresar la :attribute',
+    // //     // ],
+    // //     // 'cliente_correo' => [
+    // //     //     'required' => 'Debe ingresar :attribute',
+    // //     //     'unique' => 'El Correo ingresado ya existe.'
+    // //     // ],
+    // //     'trabajo_nomnbre.required' => 'Debe ingresar el Nombre del Trabajo',
+    // //     'fecha_pedido.required' => 'Debe ingresar la Fecha del Pedido',
+    // //     'fecha_entrega.after_or_equal' => 'La :attribute debe ser mayor a la Fecha del Pedido',
+    // //     // 'invitation.email.unique.invitations' => 'The email has already been invited.',
+    // //     // 'invitation.email.unique.users' => 'An account with this email has already been registered.',
+    // //     // 'text.min' => 'Keep typing...'
+    // ];
 
+    // protected $validationAttributes = [
     //     'fecha_pedido' => 'Fecha del Pedido',
     //     'fecha_entrega' => 'Fecha de Entrega',
     //     'selectedCliente' => 'CLIENTE',
     //     'selectedColor' => 'COLOR',
-    //     'trabajo_nombre' => 'Nombre del Trabajo',
+    //     'trabajo_nombre' => 'Nombre Trabajo',
     //     'ancho' => 'Ancho',
     //     'largo' => 'Largo',
     //     'espesor' => 'Espesor',
@@ -957,16 +1036,29 @@ class PedidoUpdate extends Component
     //     'precio_unitario' => 'Precio Unitario',
     //     'cantidad_bolsas' => 'Cantidad de Bolsas',
     //     'observaciones' => 'Observaciones',
-    //     // Atributos del Cliente
-    //     'cliente_razonsocial' => 'Razón Social',
-    //     'cliente_cuit' => 'CUIT',
-    //     'cliente_telefono1' => 'Teléfono',
-    //     'cliente_correo' => 'Correo',
-    //     'cliente_calle_nombre' => 'Calle',
-    //     'cliente_calle_numero' => 'Nro.',
-    //     'cliente_codigo_postal' => 'Código Postal',
-    //     'cliente_barrio_nombre' => 'Barrio',
-    //     'cliente_localidad_nombre' => 'Localidad',
-    ];
+
+    // //     'fecha_pedido' => 'Fecha del Pedido',
+    // //     'fecha_entrega' => 'Fecha de Entrega',
+    // //     'selectedCliente' => 'CLIENTE',
+    // //     'selectedColor' => 'COLOR',
+    // //     'trabajo_nombre' => 'Nombre del Trabajo',
+    // //     'ancho' => 'Ancho',
+    // //     'largo' => 'Largo',
+    // //     'espesor' => 'Espesor',
+    // //     'ancho' => 'Ancho',
+    // //     'precio_unitario' => 'Precio Unitario',
+    // //     'cantidad_bolsas' => 'Cantidad de Bolsas',
+    // //     'observaciones' => 'Observaciones',
+    // //     // Atributos del Cliente
+    // //     'cliente_razonsocial' => 'Razón Social',
+    // //     'cliente_cuit' => 'CUIT',
+    // //     'cliente_telefono1' => 'Teléfono',
+    // //     'cliente_correo' => 'Correo',
+    // //     'cliente_calle_nombre' => 'Calle',
+    // //     'cliente_calle_numero' => 'Nro.',
+    // //     'cliente_codigo_postal' => 'Código Postal',
+    // //     'cliente_barrio_nombre' => 'Barrio',
+    // //     'cliente_localidad_nombre' => 'Localidad',
+    // ];
 
 }

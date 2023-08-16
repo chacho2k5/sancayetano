@@ -54,7 +54,7 @@
           <td class="brmedio">Metros: {{ $reg->metros }}</td>
         </tr>
         <tr class="bbfino">
-            <td class="brfino">Mes: Mayo</td>
+            <td class="brfino">Mes: {{ $mes }}</td>
             <td class="brfino">Espesor: {{ $reg->espesor }}</td>
             <td class="brmedio">Peso (Kg): {{ $reg->peso }}</td>
           </tr>

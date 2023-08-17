@@ -60,6 +60,16 @@ class Trabajo extends Model
         'observaciones_corte',
     ];
 
+    public function scopeCantidadActivos($query, $cliente, $estado)
+    {
+        $db = Trabajo::query()
+            ->where('cliente_id', $cliente)
+            ->where('trabajo_activo', $estado)
+            ->count();
+
+        return $db;
+    }
+
     public function cliente() {
         return $this->belongsTo(Cliente::class, 'cliente_id','id')->withDefault();
     }

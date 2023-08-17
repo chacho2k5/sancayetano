@@ -1,4 +1,4 @@
-<div>
+<div> 
     <div x-data="{indexRow: @entangle('indexRow'), selected: null, selectedRow: @entangle('selectedRow'), pedidoId: @entangle('pedido_id'), estadoId: @entangle('estado_id'), reclamo: @entangle('reclamo') }" class="px-0 mx-0 container-fluid">
         <div class="mb-0 row row-cols-auto justify-content-between">
             {{-- <div class="mt-2 mb-4 container-fluid"> --}}

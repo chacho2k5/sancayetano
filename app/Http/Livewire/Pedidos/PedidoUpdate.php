@@ -13,6 +13,7 @@ use App\Models\Tratado;
 use Livewire\Component;
 use App\Models\Material;
 use App\Models\EstadoPedido;
+use App\Models\Trabajo;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Calculation\TextData\Format;
 
@@ -359,6 +360,11 @@ class PedidoUpdate extends Component
             $reg4 = $this->bolsas->find($reg->bolsa_id);
             $this->bolsa_nombre = $reg4->nombre;
             $this->bolsa_fuelle = $reg4->fuelle;
+
+            $this->trabajo_cantidad_activos = Trabajo::cantidadActivos($this->selectedCliente, true);
+            $this->trabajo_cantidad_desactivos = Trabajo::cantidadActivos($this->selectedCliente, false);
+            $this->cantReclamosCliente = Pedido::getReclamosCliente($this->selectedCliente);
+
         }
     }
     
@@ -382,16 +388,16 @@ class PedidoUpdate extends Component
     }
 
     public function updatedselectedCliente($value) {
-        if($value ==! null) {
+        // if($value ==! null) {
             $cliente = $this->clientes->find($value);
             $this->cliente_nombre = $cliente->razonsocial;
-            $this->trabajo_cantidad_activos = Pedido::cantidadActivos($this->selectedCliente, true);
-            $this->trabajo_cantidad_desactivos = Pedido::cantidadActivos($this->selectedCliente, false);
+            $this->trabajo_cantidad_activos = Trabajo::cantidadActivos($this->selectedCliente, true);
+            $this->trabajo_cantidad_desactivos = Trabajo::cantidadActivos($this->selectedCliente, false);
             $this->cantReclamosCliente = Pedido::getReclamosCliente($this->selectedCliente);
             // Aca busco los reclamos
-        } else {
-            $this->reset(['cliente_nombre']);
-        }
+        // } else {
+        //     $this->reset(['cliente_nombre']);
+        // }
     }
 
     public function updatedCantidadBolsas($value) {
@@ -611,19 +617,19 @@ class PedidoUpdate extends Component
 
     public function cambiarEstadoTrabajo() {
 
-        Pedido::where('id',$this->selectedArticulo)
+        Trabajo::where('id',$this->selectedArticulo)
              ->update(['trabajo_activo' => !$this->activar_trabajo]);
         
         $this->queryArticulosOT($this->selectedCliente, $this->activar_trabajo);
 
-        $this->trabajo_cantidad_activos = Pedido::cantidadActivos($this->selectedCliente, true);
-        $this->trabajo_cantidad_desactivos = Pedido::cantidadActivos($this->selectedCliente, false);
+        $this->trabajo_cantidad_activos = Trabajo::cantidadActivos($this->selectedCliente, true);
+        $this->trabajo_cantidad_desactivos = Trabajo::cantidadActivos($this->selectedCliente, false);
 
         $this->reset('selectedArticulo', 'btnDesactivar');
     }
 
     public function queryArticulosOT($id, $value) {
-        $this->articulos_ot = Pedido::query()
+        $this->articulos_ot = Trabajo::query()
             ->where('cliente_id', $id)
             ->where('trabajo_activo', $value)
             ->with('material:id,nombre','color:id,nombre','bolsa:id,nombre','tratado:id,nombre','corte:id,nombre')

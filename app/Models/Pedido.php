@@ -155,15 +155,15 @@ class Pedido extends Model
         }
     }
 
-    public function scopeCantidadActivos($query, $cliente, $estado)
-    {
-        $db = Pedido::query()
-            ->where('cliente_id', $cliente)
-            ->where('trabajo_activo', $estado)
-            ->count();
+    // public function scopeCantidadActivos($query, $cliente, $estado)
+    // {
+    //     $db = Pedido::query()
+    //         ->where('cliente_id', $cliente)
+    //         ->where('trabajo_activo', $estado)
+    //         ->count();
 
-        return $db;
-    }
+    //     return $db;
+    // }
 
     public function cliente() {
         return $this->belongsTo(Cliente::class, 'cliente_id','id')->withDefault();

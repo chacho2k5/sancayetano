@@ -32,7 +32,7 @@
                     @if ($action == 'show')<fieldset disabled='disabled'>@endif
     
                     <div class="card-body">
-                        <div class="mb-2 row">
+                        <div class="mb-2 row gx-2">
                             <div class="col-md-2">
                                 <x-zform-input type="date" wire:model.lazy='fecha_pedido' name="fecha_pedido" label="Fecha Pedido" placeholder='label' title="Debe ingresar la 'Fecha del Pedido'." autofocus/>
                             </div>
@@ -94,7 +94,7 @@
                                 <x-zform-input wire:model.lazy='numero_ot' name="numero_ot" label="Nro. Orden Trabajo" placeholder='label' title="Nro. de la 'Orden de Trabajo'." disabled />
                             </div>
                         </div>
-                        <div class="mb-2 row">
+                        <div class="mb-2 row gx-2">
                             <div class="form-group col-md-2">
                                 <x-zform-input type="number" wire:model='cantidad_bolsas' name="cantidad_bolsas" label="Cant. Bolsas" placeholder='label' />
                             </div>
@@ -117,7 +117,7 @@
                                 <x-zform-input wire:model='peso' name="peso" label="Peso" placeholder='label' disabled/>
                             </div>
                         </div>
-                        <div class="mb-2 row">
+                        <div class="mb-2 row gx-2">
                             <div class="form-group col-md-4">
                                 <x-zform-input type="text" wire:model.lazy='trabajo_nombre' name="trabajo_nombre" label="Nombre Trabajo" placeholder='label' title="Debe ingresar el 'Nombre del Trabajo'." />
 
@@ -141,7 +141,7 @@
                                 <x-zform-input type="number" wire:model.lazy='espesor' name="espesor" label="Espesor" placeholder='label' />
                             </div>
                         </div>
-                        <div class="mb-3 row">
+                        <div class="mb-3 row gx-2">
                             <div class="form-group col-md-3">
                                 <label for="" class="col-form-label-sm">Tipo</label>
                                 <select wire:model="selectedDensidad" class="form-select form-select-sm @error('selectedDensidad') is-invalid @enderror" title="Debe seleccionar un tipo.">
@@ -200,7 +200,7 @@
                         </div>
                         <fieldset class="border rounded-2 px-2 pb-2 mb-3">
                             <legend class="float-none w-auto px-2" style="font-size: .75rem">COLORES</legend>
-                        <div class="row">
+                        <div class="row gx-2">
                             <div class="form-group col-md-2">
                                 <select wire:model="selectedColor1" class="form-select form-select-sm @error('selectedColor1') is-invalid @enderror" title="Debe seleccionar un color.">
                                     <option value="0">Seleccione un color</option>
@@ -264,7 +264,7 @@
                             
                         </div>
                         </fieldset>
-                        <div class="mb-2 row gx-3">
+                        <div class="mb-2 row gx-2">
                             <div class="form-group col-md-2">
                                 <label for="" class="col-form-label-sm">Tipo Bolsa</label>
                                 <select wire:model="selectedBolsa" class="form-select form-select-sm @error('selectedBolsa') is-invalid @enderror" title="Debe seleccionar un tipo de bolsa.">                                
